@@ -9,8 +9,10 @@ router.get('/', passport.authenticate('steam'));
 router.get('/return', passport.authenticate('steam', {
   failureRedirect: '/login',
 }), (req, res) => {
-  // Successful login, redirect to homepage (or wherever you need)
-  res.redirect('/');
+  console.log('✅ Logged in successfully, user:', req.user);
+  res.redirect('http://localhost:5173/profile');
 });
+
+
 
 module.exports = router;

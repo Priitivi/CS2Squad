@@ -9,16 +9,23 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Express session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // true ONLY if using https
+    sameSite: 'lax' // this is the KEY setting for localhost cross-origin
+  }
 }));
+
 
 // Initialize Passport.js
 require('./app')(passport);  // Passport setup
@@ -35,6 +42,24 @@ app.get('/', (req, res) => {
       res.send('CS2Squad Backend API');
     }
   });
+
+// Profile page route
+app.get("/profile", (req, res) => {
+  console.log("Session ID:", req.sessionID);
+  console.log("Authenticated user:", req.user);
+
+  if (req.isAuthenticated()) {
+    res.json({
+      username: req.user.displayName,
+      steamProfile: req.user.steamProfile,
+      avatar: req.user.avatar,
+    });
+  } else {
+    res.status(401).json({ message: "Not authenticated" });
+  }
+});
+
+
   
   
 // Steam authentication routes
