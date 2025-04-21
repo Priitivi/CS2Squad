@@ -64,6 +64,8 @@ npm run dev
 
 Frontend will run on `http://localhost:5173`
 
+## 🔁 API Routes
+
 | Route                | Method | Description                          |
 |---------------------|--------|--------------------------------------|
 | `/auth/steam`        | GET    | Redirects to Steam login             |
