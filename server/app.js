@@ -1,6 +1,8 @@
 const passportSteam = require('passport-steam');
 const passport = require('passport');
 const SteamStrategy = passportSteam.Strategy;
+const User = require('./models/User'); // ✅ Proper User class
+const { addUser } = require('./data/mockDB');
 
 module.exports = function (passport) {
   passport.use(new SteamStrategy({
@@ -8,13 +10,19 @@ module.exports = function (passport) {
     realm: process.env.STEAM_REALM,
     apiKey: process.env.STEAM_API_KEY,
   }, (identifier, profile, done) => {
-    const user = {
-      id: profile.id,
-      displayName: profile.displayName,
-      steamProfile: profile._json.profileurl,
+    // ✅ Instantiate the class instead of using a plain object
+    const user = new User({
+      steamId: profile.id,
+      username: profile.displayName,
       avatar: profile._json.avatarfull,
-    };
+      // Optional future: region, rank, roles, availability
+    });
+
     console.log('🟢 User object passed to session:', user);
+
+    addUser(user);
+    console.log('🟢 Stored new user:', user);
+
     return done(null, user);
   }));
 
