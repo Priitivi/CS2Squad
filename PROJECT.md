@@ -1,3 +1,4 @@
+
 # CS2Squad - Project Specification
 
 **Tagline:**  
@@ -38,10 +39,12 @@ CS2Squad is a full-stack web application that helps Counter-Strike 2 players con
 ## 📦 Features
 
 ### MVP
-- [ ] User registration and login (via Steam)
-- [ ] Link Steam account + fetch profile info
-- [ ] Manual or automatic CS2 rank entry
-- [ ] User profile setup: Rank, Region, Role, Availability
+- [x] User registration and login (via Steam)
+- [x] Link Steam account + fetch profile info
+- [x] Manual CS2 Premier rank entry via interactive slider
+- [x] Profile edit modal (Rank, Region, Roles)
+- [x] Region selection (map UI)
+- [ ] Availability (to be implemented)
 - [ ] Search & filter players by criteria
 - [ ] “Invite to party” or “Add friend” button
 
@@ -51,6 +54,16 @@ CS2Squad is a full-stack web application that helps Counter-Strike 2 players con
 - [ ] Discord integration
 - [ ] User ratings or reputation system
 - [ ] Team creation and management (for 5-stacks)
+
+---
+
+## 🎨 Custom Components & UI Polish
+
+- ✅ Premier Rank Slider (color-coded, CS2-style)
+- ✅ Profile page modularized (`ProfileHeader`, `YourTeamsSection`, `RecommendPlayers`)
+- ✅ Gamified design elements (e.g. silhouette background, hover animations)
+- ✅ Placeholder testimonial cards & scrollable info sections
+- ✅ Fully styled edit profile modal
 
 ---
 
@@ -92,12 +105,14 @@ CS2Squad/
 
 ## 📌 Milestones
 
-- [ ] ✅ Initial project setup
-- [ ] ✅ Add `PROJECT.md` and planning
-- [ ] 🔧 Steam OAuth research + setup
-- [ ] 🧪 Build authentication & user model
-- [ ] 🎨 Basic frontend wireframes (Figma or paper)
-- [ ] 📬 API routes for profiles + filters
+- [x] ✅ Initial project setup
+- [x] ✅ Add `PROJECT.md` and planning
+- [x] 🔧 Steam OAuth research + setup
+- [x] 🧪 Build authentication & user model
+- [x] 🎨 Basic frontend wireframes (in-code first pass)
+- [ ] 🧰 Add Availability field to profile
+- [ ] 🧑‍🤝‍🧑 Implement Squad builder
+- [ ] 🖼 Add more CS2-themed visuals and assets
 - [ ] 🚀 MVP deployment
 
 ---

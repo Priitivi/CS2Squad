@@ -6,16 +6,36 @@
 
 ## ✨ Features
 
-- 🔐 Steam authentication using `passport-steam`
-- 🧠 Session management with `express-session` and secure cross-origin setup
-- 🧩 Backend: Express.js with REST API
-- ⚛️ Frontend: React (Vite) with TailwindCSS
-- 💻 GitHub-friendly structure with environment variable support
-- 🚧 Profile route implemented (`/profile`)
+- 🔐 Steam authentication using Passport.js
+- 👤 Profile page showing:
+  - Avatar, Steam link, Rank (Premier-style), Region, and Roles
+  - Editable profile with a polished modal and custom CS2-style Premier Rank slider
+- 🫂 Your Teams section with placeholder visuals
+- 🧠 "Start Adding People" recommendation UI (coming soon)
+- 🎨 Sleek, animated homepage with testimonials, stats, feature cards, and call-to-action
+- 🎮 Theming inspired by Counter-Strike 2 with silhouettes and gamery vibe
 
 ---
 
-## 🛠️ Getting Started
+## 🛠️ Tech Stack
+
+- **Frontend:** React + TailwindCSS + React Router
+- **Backend:** Node.js + Express + Passport-Steam
+- **Auth:** Steam OpenID
+- **Styling:** TailwindCSS with animations and responsive design
+
+---
+
+## 🔧 Planned Features
+
+- 🧠 Matchmaking algorithm based on region + rank
+- 💬 Team creation & invites
+- 📈 Leaderboard and stats
+- 💻 Admin dashboard
+
+---
+
+## 💡 Getting Started
 
 ### Prerequisites
 
