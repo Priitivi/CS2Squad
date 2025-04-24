@@ -1,0 +1,23 @@
+import React from "react";
+
+function ExtraCard() {
+    return (
+      <div className="bg-gray-800 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+        <div>
+          <h3 className="text-2xl font-bold mb-2">Why CS2Squad?</h3>
+          <p className="text-sm mb-4">
+            We combine rank data, user preferences, and smart filters to connect you with players who match your skill and vibe. Our mission is to make solo queuing a thing of the past.
+          </p>
+        </div>
+        <a
+          href="/profile"
+          className="text-blue-400 hover:underline mt-2"
+        >
+          Learn more
+        </a>
+      </div>
+    );
+  }
+  
+export default ExtraCard ;
+  
