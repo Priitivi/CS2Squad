@@ -15,8 +15,13 @@ module.exports = function (passport) {
       steamId: profile.id,
       username: profile.displayName,
       avatar: profile._json.avatarfull,
-      // Optional future: region, rank, roles, availability
+      region: '',
+      rank: '',
+      roles: [],
+      availability: [],
+      teams: [],  // ✅ IMPORTANT
     });
+    
 
     console.log('🟢 User object passed to session:', user);
 

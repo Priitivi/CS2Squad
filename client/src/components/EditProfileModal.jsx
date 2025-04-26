@@ -8,6 +8,8 @@ function EditProfileModal({ user, onClose, onSave }) {
     region: user.region || "",
     roles: user.roles || [],
   });
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
@@ -21,7 +23,8 @@ function EditProfileModal({ user, onClose, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch("http://localhost:5000/users/update", {
+    setError(null);
+    fetch(`http://localhost:5000/users/${user.steamId}/edit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -29,16 +32,43 @@ function EditProfileModal({ user, onClose, onSave }) {
     })
       .then((res) => res.json())
       .then((updatedUser) => {
-        onSave(updatedUser);
-        onClose();
+        onSave(updatedUser.user);
+        setSuccess(true);
+
+        // Show banner, THEN close after
+        setTimeout(() => {
+          setSuccess(false);
+          setTimeout(() => {
+            onClose();
+          }, 300);
+        }, 2000);
       })
-      .catch((err) => console.error("Update failed:", err));
+      .catch((err) => {
+        console.error("Update failed:", err);
+        setError("Failed to update profile. Please try again.");
+      });
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-900 p-6 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+      <div className="relative bg-gray-900 p-6 rounded-lg shadow-xl max-w-md w-full">
+
+        {/* Success Banner */}
+        {success && (
+          <div className="absolute top-0 left-0 right-0 bg-green-500 text-black font-semibold text-center py-2 rounded-t-lg animate-slideDown">
+            Profile updated successfully! 🎉
+          </div>
+        )}
+
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-500 text-white text-center p-2 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        <h2 className="text-xl font-bold mb-6 mt-2">Edit Profile</h2>
+
         <form onSubmit={handleSubmit} className="space-y-6">
 
           {/* Premier Rank Slider */}
@@ -47,22 +77,20 @@ function EditProfileModal({ user, onClose, onSave }) {
             onChange={(value) => setFormData((prev) => ({ ...prev, rank: value }))}
           />
 
-          {/* Interactive Region Selector */}
+          {/* Region Selector */}
           <div>
             <label className="block mb-2 font-medium">Select Region</label>
             <RegionSelector
               selectedRegion={formData.region}
-              onSelect={(region) =>
-                setFormData((prev) => ({ ...prev, region }))
-              }
+              onSelect={(region) => setFormData((prev) => ({ ...prev, region }))}
             />
           </div>
 
-          {/* Roles checkboxes */}
+          {/* Roles */}
           <div>
             <label className="block mb-1 font-medium">Roles</label>
             <div className="flex gap-3 flex-wrap">
-              {['IGL', 'Entry', 'AWPer', 'Support', 'Lurker'].map((role) => (
+              {["IGL", "Entry", "AWPer", "Support", "Lurker"].map((role) => (
                 <label key={role} className="inline-flex items-center text-sm">
                   <input
                     type="checkbox"
@@ -77,7 +105,7 @@ function EditProfileModal({ user, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Action buttons */}
+          {/* Buttons */}
           <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"

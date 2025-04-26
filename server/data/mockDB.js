@@ -21,9 +21,20 @@ function updateUser(steamId, updatedFields) {
   return false;
 }
 
+// mockDB.js
+function addTeamToUser(steamId, team) {
+  const user = users.get(steamId);
+  if (user) {
+    user.teams.push(team);
+    return true;
+  }
+  return false;
+}
+
 module.exports = {
   addUser,
   getUser,
   getAllUsers,
   updateUser,
+  addTeamToUser, // NEW export
 };

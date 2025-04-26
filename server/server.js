@@ -43,21 +43,30 @@ app.get('/', (req, res) => {
     }
   });
 
-// Profile page route
-app.get("/profile", (req, res) => {
-  if (req.isAuthenticated()) {
-    const { username, steamId, avatar, region, rank, roles, availability } = req.user;
-    res.json({ username, steamId, avatar, region, rank, roles, availability });
-  } else {
-    res.status(401).json({ message: "Not authenticated" });
-  }
-});
-
+  app.get('/profile', (req, res) => {
+    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+  
+    res.json({
+      steamId: req.user.steamId,
+      username: req.user.username,
+      avatar: req.user.avatar,
+      region: req.user.region,
+      rank: req.user.rank,
+      roles: req.user.roles,
+      availability: req.user.availability,
+      teams: req.user.teams || [], // ✅ SEND TEAMS!!
+    });
+  });
+  
 
 
 const userRoutes = require('./routes/users');
 app.use('/users', userRoutes);
  
+
+const teamRoutes = require('./routes/team');
+app.use('/team', teamRoutes);
+
   
 // Steam authentication routes
 app.use('/auth/steam', require('./routes/authSteam'));

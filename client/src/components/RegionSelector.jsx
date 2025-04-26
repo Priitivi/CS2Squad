@@ -13,10 +13,15 @@ const regions = [
 function RegionSelector({ selectedRegion, onSelect }) {
   return (
     <div className="relative w-full h-60 bg-gray-800 rounded overflow-hidden">
-      <img src={globe} alt="World Map" className="w-full h-full object-cover opacity-70" />
+      <img
+        src={globe}
+        alt="World Map"
+        className="w-full h-full object-cover opacity-70"
+      />
       {regions.map((region) => (
         <button
           key={region.name}
+          type="button"  // (✅ move comment OUTSIDE if you really need it)
           className={`absolute text-xs font-bold px-2 py-1 rounded-full transition transform -translate-x-1/2 -translate-y-1/2 ${
             selectedRegion === region.name
               ? "bg-green-500 text-black"
