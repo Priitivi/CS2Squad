@@ -7,33 +7,40 @@ import EditProfileModal from "../components/EditProfileModal";
 function Profile() {
   const [user, setUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState(""); // ✅ new
 
-  const fetchUserProfile = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/profile", { credentials: "include" });
-      const data = await res.json();
-      if (data.username) {
-        console.log("🔥 Fetched updated profile:", data); // ADD THIS LINE
-        setUser({
-          ...data,
-          teams: data.teams || [],
-        });
-      }
-    } catch {
-      setUser(null);
-    }
+  const fetchUserProfile = () => {
+    fetch("http://localhost:5000/profile", {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.username) {
+          setUser({
+            ...data,
+            teams: data.teams || [],
+          });
+        }
+      })
+      .catch(() => setUser(null));
   };
-  
 
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
-  const handleSave = async () => {
-    await fetchUserProfile(); 
+  const handleSave = () => {
+    fetchUserProfile();
     setShowModal(false);
   };
-  
+
+  const handleTeamsUpdated = (message) => {
+    fetchUserProfile();
+    if (message) {
+      setToastMessage(message);
+      setTimeout(() => setToastMessage(""), 3000); // hide after 3s
+    }
+  };
 
   const handleClose = () => setShowModal(false);
 
@@ -48,14 +55,26 @@ function Profile() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-20 p-6 bg-white/5 backdrop-blur-md rounded-xl shadow-lg text-white">
+    <div className="max-w-4xl mx-auto mt-20 p-6 bg-white/5 backdrop-blur-md rounded-xl shadow-lg text-white relative">
+
+      {/* ✅ Success Toast */}
+      {toastMessage && (
+      <div className="absolute top-0 left-0 right-0 bg-green-500 text-black text-center py-2 font-bold rounded-t-lg shadow transition-all duration-500 ease-in-out">
+        {toastMessage}
+      </div>
+)}
+
+
       <ProfileHeader user={user} onEditClick={() => setShowModal(true)} />
+
       <YourTeamsSection
         userTeams={user.teams || []}
         userSteamId={user.steamId}
-        onTeamsUpdated={fetchUserProfile}
+        onTeamsUpdated={handleTeamsUpdated} // pass message handler
       />
+
       <RecommendPlayers />
+
       {showModal && (
         <EditProfileModal
           user={user}

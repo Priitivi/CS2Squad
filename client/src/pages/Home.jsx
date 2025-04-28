@@ -1,5 +1,4 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
 import FeatureCard from "../components/FeatureCard";
 import StatCard from "../components/StatCard";
 import HowItWorksCard from "../components/HowItWorksCard";
@@ -8,8 +7,6 @@ import ExtraCard from "../components/ExtraCard";
 import TestimonialCard from "../components/TestimonialCard";
 
 function Home({ user, userCount }) {
-  if (user) return <Navigate to="/profile" />;
-
   return (
     <>
       <main className="flex flex-col items-center justify-center text-center mt-24 px-6">
@@ -30,7 +27,7 @@ function Home({ user, userCount }) {
         <HowItWorksCard />
         <ExtraCard />
         <TestimonialCard />
-        <CTACard />
+        <CTACard user={user} /> {/* 🔥 Pass user into CTA card */}
       </section>
     </>
   );

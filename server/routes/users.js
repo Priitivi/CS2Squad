@@ -1,7 +1,12 @@
 const express = require('express');
-const { getUser, updateUser } = require('../data/mockDB');
-
+const { getUser, updateUser, getAllUsers } = require('../data/mockDB'); // ✅ import all 3
 const router = express.Router();
+
+// Get all users
+router.get('/', (req, res) => {
+  const users = getAllUsers();
+  res.json(users);
+});
 
 // Get a user by Steam ID
 router.get('/:id', (req, res) => {
@@ -22,7 +27,7 @@ router.post('/:id/edit', (req, res) => {
 
   const user = getUser(req.params.id);
 
-  // ✅ Update the active session user too
+  // ✅ Update session user if necessary
   if (req.user && req.user.steamId === user.steamId) {
     Object.assign(req.user, user);
     console.log('✅ Session req.user updated too:', req.user);

@@ -1,6 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-function CTACard() {
+function CTACard({ user }) {
   return (
     <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between">
       <div>
@@ -9,12 +10,23 @@ function CTACard() {
           Join thousands of players building the ultimate CS2 teams. Create your profile, filter by playstyle, and start climbing the ranks—together.
         </p>
       </div>
-      <a
-        href="http://localhost:5000/auth/steam"
-        className="bg-white text-green-600 hover:text-green-700 text-center font-bold py-2 px-4 rounded-lg shadow transition duration-200"
-      >
-        Build Your Squad
-      </a>
+
+      {/* 🔥 If user is logged in, show 'Go to Profile'. Otherwise show 'Sign In' */}
+      {user ? (
+        <Link
+          to="/profile"
+          className="bg-white text-green-600 hover:text-green-700 text-center font-bold py-2 px-4 rounded-lg shadow transition duration-200"
+        >
+          Go to Your Profile
+        </Link>
+      ) : (
+        <a
+          href="http://localhost:5000/auth/steam"
+          className="bg-white text-green-600 hover:text-green-700 text-center font-bold py-2 px-4 rounded-lg shadow transition duration-200"
+        >
+          Build Your Squad
+        </a>
+      )}
     </div>
   );
 }

@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import silhouetteImage from "../assets/silhouettes.png";
-import { createTeam } from "../services/teamService"; // we just made this!
+import { createTeam } from "../services/teamService";
+import ManageTeamModal from "./ManageTeamModal"; // ✅ NEW
 
 function YourTeamsSection({ userTeams, userSteamId, onTeamsUpdated }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [teamName, setTeamName] = useState("");
+  const [manageTeam, setManageTeam] = useState(null); // ✅ NEW
 
   const handleCreateTeam = async () => {
     if (teamName.trim()) {
       console.log("Trying to create team", teamName);
       await createTeam(userSteamId, teamName, []);
-      onTeamsUpdated(); // refresh after creation
+      onTeamsUpdated("Team created successfully! 🎉"); // 🔥
       setTeamName("");
       setShowCreateModal(false);
     }
@@ -19,14 +21,14 @@ function YourTeamsSection({ userTeams, userSteamId, onTeamsUpdated }) {
   return (
     <div className="mt-10">
       <div
-        className="relative bg-black/40 bg-center bg-no-repeat bg-contain h-56 rounded-xl shadow-lg overflow-hidden"
+        className="relative bg-black/40 bg-center bg-no-repeat bg-contain h-80 rounded-xl shadow-lg overflow-hidden"
         style={{
           backgroundImage: `url(${silhouetteImage})`,
           backgroundSize: "cover",
         }}
       >
-        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center px-4 text-center">
-          <h3 className="text-2xl font-bold mb-2">Your Teams</h3>
+        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center px-4 text-center overflow-y-auto">
+          <h3 className="text-2xl font-bold mb-4">Your Teams</h3>
 
           {userTeams.length === 0 ? (
             <>
@@ -41,10 +43,19 @@ function YourTeamsSection({ userTeams, userSteamId, onTeamsUpdated }) {
               </button>
             </>
           ) : (
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3 max-h-48 overflow-y-auto">
               {userTeams.map((team, idx) => (
-                <div key={idx} className="bg-white/10 px-4 py-2 rounded-lg text-white text-sm shadow">
-                  {team.name}
+                <div
+                  key={idx}
+                  className="bg-white/10 p-4 rounded-lg text-white shadow flex flex-col items-center gap-2 transition hover:bg-white/20 hover:shadow-lg"
+                >
+                  <span className="font-semibold">{team.name}</span>
+                  <button
+                    onClick={() => setManageTeam({ ...team, originalIndex: idx })}
+                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded"
+                  >
+                    Manage
+                  </button>
                 </div>
               ))}
               <button
@@ -86,6 +97,19 @@ function YourTeamsSection({ userTeams, userSteamId, onTeamsUpdated }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Manage Team Modal */}
+      {manageTeam && (
+        <ManageTeamModal
+          team={manageTeam}
+          userSteamId={userSteamId}
+          onClose={() => setManageTeam(null)}
+          onUpdated={(message) => {
+            onTeamsUpdated(message);
+            setManageTeam(null);
+          }}
+        />
       )}
     </div>
   );
