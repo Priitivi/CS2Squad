@@ -1,33 +1,32 @@
 const express = require('express');
-const { getUser, updateUser, getAllUsers } = require('../data/mockDB'); // ✅ import all 3
+const { getUser, updateUser, getAllUsers } = require('../data/realDB'); // ✅ Real database now
 const router = express.Router();
 
 // Get all users
-router.get('/', (req, res) => {
-  const users = getAllUsers();
+router.get('/', async (req, res) => {
+  const users = await getAllUsers();
   res.json(users);
 });
 
-// Get a user by Steam ID
-router.get('/:id', (req, res) => {
-  const user = getUser(req.params.id);
+// Get user by Steam ID
+router.get('/:id', async (req, res) => {
+  const user = await getUser(req.params.id);
   if (!user) return res.status(404).json({ message: 'User not found' });
   res.json(user);
 });
 
-// Update user info (region, rank, roles, etc.)
-router.post('/:id/edit', (req, res) => {
+// Update user info
+router.post('/:id/edit', async (req, res) => {
   console.log(`⚡️ Received edit request for user ${req.params.id} with data:`, req.body);
 
-  const updated = updateUser(req.params.id, req.body);
-  if (!updated) {
+  const success = await updateUser(req.params.id, req.body);
+  if (!success) {
     console.log("❌ Failed to update user");
     return res.status(404).json({ message: 'User not found or update failed' });
   }
 
-  const user = getUser(req.params.id);
+  const user = await getUser(req.params.id);
 
-  // ✅ Update session user if necessary
   if (req.user && req.user.steamId === user.steamId) {
     Object.assign(req.user, user);
     console.log('✅ Session req.user updated too:', req.user);

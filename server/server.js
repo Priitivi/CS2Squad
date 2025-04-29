@@ -4,13 +4,12 @@ const session = require('express-session');
 const cors = require('cors');
 require('dotenv').config();
 
-const { getUser } = require('./data/mockDB'); // ✅ NEW
+const { getUser } = require('./data/realDB'); // ✅ USE realDB NOW
+const db = require('./data/db'); // ✅ connection
 
-// Initialize the Express app
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
@@ -24,19 +23,26 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: false,
-    sameSite: 'lax'
-  }
+    sameSite: 'lax',
+  },
 }));
 
-// Initialize Passport.js
 require('./app')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+// ✅ DB Test route
+app.get('/test-db', async (req, res) => {
+  try {
+    const result = await db.query('SELECT NOW()');
+    res.json({ success: true, time: result.rows[0].now });
+  } catch (err) {
+    console.error('❌ DB connection failed:', err);
+    res.status(500).json({ success: false, message: 'Database error' });
+  }
+});
+
 app.get('/', (req, res) => {
-  console.log('Session:', req.session);
-  console.log('User:', req.user);
   if (req.user) {
     res.send(`Welcome back, ${req.user.username}!`);
   } else {
@@ -44,25 +50,54 @@ app.get('/', (req, res) => {
   }
 });
 
-// ✅ FIXED Profile Route to pull fresh data!
-app.get('/profile', (req, res) => {
+app.get('/profile', async (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
 
-  const freshUser = getUser(req.user.steamId); // 🛠 always get latest user
-  if (!freshUser) return res.status(404).json({ message: "User not found" });
+  try {
+    const steamId = req.user.steam_id || req.user.steamId;
+    if (!steamId) return res.status(400).json({ message: "Steam ID missing from session user" });
 
-  res.json({
-    steamId: freshUser.steamId,
-    username: freshUser.username,
-    avatar: freshUser.avatar,
-    region: freshUser.region,
-    rank: freshUser.rank,
-    roles: freshUser.roles,
-    availability: freshUser.availability,
-    teams: freshUser.teams || [],
-  });
+    // Get user from DB
+    const userResult = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "User not found in DB" });
+    }
+    const user = userResult.rows[0];
+
+    // Get teams from DB
+    const teamResult = await db.query(
+      `SELECT id, name, members, created_at FROM teams WHERE owner_id = $1 ORDER BY created_at`,
+      [steamId]
+    );
+
+    const teams = teamResult.rows.map((team, idx) => ({
+      id: team.id,
+      name: team.name,
+      members: team.members,
+      createdAt: team.created_at,
+      originalIndex: idx,
+    }));
+
+    // Send full user + teams
+    res.json({
+      steamId: user.steam_id,
+      username: user.username,
+      avatar: user.avatar,
+      region: user.region,
+      rank: user.rank,
+      roles: user.roles || [],
+      availability: user.availability || [],
+      teams: teams,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching profile:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
+
+
+// Routes
 const userRoutes = require('./routes/users');
 app.use('/users', userRoutes);
 
@@ -71,7 +106,6 @@ app.use('/team', teamRoutes);
 
 app.use('/auth/steam', require('./routes/authSteam'));
 
-// Start server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

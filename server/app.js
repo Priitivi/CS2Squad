@@ -1,34 +1,44 @@
+// server/app.js
 const passportSteam = require('passport-steam');
 const passport = require('passport');
 const SteamStrategy = passportSteam.Strategy;
-const User = require('./models/User'); // ✅ Proper User class
-const { addUser } = require('./data/mockDB');
+const db = require('./data/db'); // ✅ Database connection
 
 module.exports = function (passport) {
   passport.use(new SteamStrategy({
     returnURL: process.env.STEAM_RETURN_URL,
     realm: process.env.STEAM_REALM,
     apiKey: process.env.STEAM_API_KEY,
-  }, (identifier, profile, done) => {
-    // ✅ Instantiate the class instead of using a plain object
-    const user = new User({
-      steamId: profile.id,
-      username: profile.displayName,
-      avatar: profile._json.avatarfull,
-      region: '',
-      rank: '',
-      roles: [],
-      availability: [],
-      teams: [],  // ✅ IMPORTANT
-    });
-    
+  }, async (identifier, profile, done) => {
+    try {
+      const steamId = profile.id;
+      const username = profile.displayName;
+      const avatar = profile._json.avatarfull;
 
-    console.log('🟢 User object passed to session:', user);
+      // 🛠 Try to find the user first
+      const result = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
 
-    addUser(user);
-    console.log('🟢 Stored new user:', user);
+      if (result.rows.length > 0) {
+        console.log('✅ Found existing user in Postgres:', result.rows[0]);
+        return done(null, result.rows[0]);
+      }
 
-    return done(null, user);
+      // 🛠 If user not found, insert it
+      await db.query(`
+        INSERT INTO users (steam_id, username, avatar)
+        VALUES ($1, $2, $3)
+      `, [steamId, username, avatar]);
+
+      console.log('✅ New user inserted into Postgres:', { steamId, username });
+
+      // Fetch newly created user
+      const inserted = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
+      return done(null, inserted.rows[0]);
+
+    } catch (err) {
+      console.error('❌ Error during Steam login:', err);
+      return done(err);
+    }
   }));
 
   passport.serializeUser((user, done) => {

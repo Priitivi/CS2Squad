@@ -1,9 +1,9 @@
 const express = require('express');
-const { getUser, addTeamToUser } = require('../data/mockDB');
+const db = require('../data/db');
 const router = express.Router();
 
 // Create a new team
-router.post('/:steamId/create-team', (req, res) => {
+router.post('/:steamId/create-team', async (req, res) => {
   const { name, members } = req.body;
   const { steamId } = req.params;
 
@@ -11,93 +11,108 @@ router.post('/:steamId/create-team', (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
-  const team = {
-    name,
-    members: members || [],
-    createdAt: new Date(),
-  };
-
-  const success = addTeamToUser(steamId, team);
-
-  if (!success) {
-    return res.status(404).json({ message: "User not found" });
+  try {
+    await db.query(
+      `INSERT INTO teams (name, owner_id, members, created_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [name, steamId, members || []]
+    );
+    return res.status(200).json({ message: "Team created successfully" });
+  } catch (err) {
+    console.error("❌ Failed to create team:", err);
+    return res.status(500).json({ message: "Server error creating team" });
   }
-
-  const user = getUser(steamId);
-  if (req.user && req.user.steamId === user.steamId) {
-    req.user.teams = user.teams;
-    console.log('✅ Session user teams updated:', req.user.teams);
-  }
-
-  return res.status(200).json({ message: "Team created successfully", team });
 });
 
-// 🔥 Add teammate to a specific team
-router.post('/:steamId/:teamName/add-teammate', (req, res) => {
+// Add teammate to a team
+router.post('/:steamId/:teamName/add-teammate', async (req, res) => {
   const { steamId, teamName } = req.params;
   const { teammateId } = req.body;
 
-  const user = getUser(steamId);
-  if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const result = await db.query(
+      `SELECT * FROM teams WHERE owner_id = $1 AND name = $2`,
+      [steamId, teamName]
+    );
 
-  const team = user.teams.find(t => t.name === teamName);
-  if (!team) return res.status(404).json({ message: "Team not found" });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Team not found" });
+    }
 
-  if (team.members.includes(teammateId)) {
-    return res.status(400).json({ message: "Teammate already added" });
+    const team = result.rows[0];
+    if (team.members.includes(teammateId)) {
+      return res.status(400).json({ message: "Teammate already added" });
+    }
+
+    const updatedMembers = [...team.members, teammateId];
+    await db.query(
+      `UPDATE teams SET members = $1 WHERE id = $2`,
+      [updatedMembers, team.id]
+    );
+
+    res.status(200).json({ message: "Teammate added", team: { ...team, members: updatedMembers } });
+  } catch (err) {
+    console.error("❌ Error adding teammate:", err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  team.members.push(teammateId);
-
-  console.log(`✅ Added teammate ${teammateId} to team ${teamName}`);
-  return res.status(200).json({ message: "Teammate added", team });
 });
 
-// 🔥 Remove teammate from a specific team
-router.post('/:steamId/:teamName/remove-teammate', (req, res) => {
+// Remove teammate
+router.post('/:steamId/:teamName/remove-teammate', async (req, res) => {
   const { steamId, teamName } = req.params;
   const { teammateId } = req.body;
 
-  const user = getUser(steamId);
-  if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const result = await db.query(
+      `SELECT * FROM teams WHERE owner_id = $1 AND name = $2`,
+      [steamId, teamName]
+    );
 
-  const team = user.teams.find(t => t.name === teamName);
-  if (!team) return res.status(404).json({ message: "Team not found" });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Team not found" });
+    }
 
-  team.members = team.members.filter(id => id !== teammateId);
+    const team = result.rows[0];
+    const updatedMembers = team.members.filter(id => id !== teammateId);
 
-  console.log(`✅ Removed teammate ${teammateId} from team ${teamName}`);
-  return res.status(200).json({ message: "Teammate removed", team });
+    await db.query(
+      `UPDATE teams SET members = $1 WHERE id = $2`,
+      [updatedMembers, team.id]
+    );
+
+    res.status(200).json({ message: "Teammate removed", team: { ...team, members: updatedMembers } });
+  } catch (err) {
+    console.error("❌ Error removing teammate:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
-
-// ✅ Delete a team by its index
-router.delete('/:steamId/:teamIndex', (req, res) => {
+// Delete team
+router.delete('/:steamId/:teamIndex', async (req, res) => {
   const { steamId, teamIndex } = req.params;
-  const user = getUser(steamId);
 
-  if (!user || !user.teams) {
-    return res.status(404).json({ message: "User not found or no teams" });
+  try {
+    const result = await db.query(
+      `SELECT * FROM teams WHERE owner_id = $1 ORDER BY created_at`,
+      [steamId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "No teams found" });
+    }
+
+    const team = result.rows[teamIndex];
+    if (!team) {
+      return res.status(404).json({ message: "Team index out of range" });
+    }
+
+    await db.query(`DELETE FROM teams WHERE id = $1`, [team.id]);
+
+    res.status(200).json({ message: "Team deleted successfully" });
+  } catch (err) {
+    console.error("❌ Error deleting team:", err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  const index = parseInt(teamIndex, 10);
-  if (isNaN(index) || index < 0 || index >= user.teams.length) {
-    return res.status(400).json({ message: "Invalid team index" });
-  }
-
-  // ✅ Remove the team
-  const deletedTeam = user.teams.splice(index, 1);
-
-  // Also update session user
-  if (req.user && req.user.steamId === user.steamId) {
-    req.user.teams = user.teams;
-  }
-
-  console.log(`🗑️ Deleted team ${deletedTeam[0].name} (index ${index})`);
-
-  return res.status(200).json({ message: "Team deleted successfully" });
 });
-
-
 
 module.exports = router;
