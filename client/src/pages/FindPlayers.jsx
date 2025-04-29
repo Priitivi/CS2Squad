@@ -1,3 +1,5 @@
+// client/src/pages/FindPlayers.jsx
+
 import React, { useEffect, useState } from "react";
 import { addTeammateToTeam } from "../services/teamService";
 
@@ -5,7 +7,7 @@ function FindPlayers() {
   const [players, setPlayers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [inviteStatus, setInviteStatus] = useState({});
-  const [selectedTeams, setSelectedTeams] = useState({}); // Tracks selected team per player
+  const [selectedTeams, setSelectedTeams] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -15,13 +17,17 @@ function FindPlayers() {
         });
         const profileData = await profileRes.json();
 
-        if (profileData.username) setCurrentUser(profileData);
+        if (profileData.username) {
+          console.log("✅ Loaded current user:", profileData);
+          setCurrentUser(profileData);
+        }
 
         const usersRes = await fetch("http://localhost:5000/users", {
           credentials: "include",
         });
         const usersData = await usersRes.json();
 
+        console.log("✅ Loaded players:", usersData);
         setPlayers(usersData);
       } catch (err) {
         console.error("❌ Failed to fetch data:", err);
@@ -32,24 +38,31 @@ function FindPlayers() {
   }, []);
 
   const handleInvite = async (playerSteamId) => {
-    if (!currentUser || !currentUser.steamId) {
-      alert("You must be logged in!");
+    const teamName = selectedTeams[playerSteamId] || currentUser?.teams?.[0]?.name;
+    const inviteKey = `${playerSteamId}-${teamName}`;
+
+    console.log("🚀 Clicking Invite button");
+    console.log("Player ID:", playerSteamId);
+    console.log("Team Name:", teamName);
+
+    if (!currentUser?.steamId || !teamName || !playerSteamId) {
+      console.warn("❌ Missing required data to send invite");
       return;
     }
 
-    const teamName =
-      selectedTeams[playerSteamId] || currentUser.teams?.[0]?.name;
-
-    if (!teamName) {
-      alert("You must create a team first!");
+    if (playerSteamId === currentUser.steamId) {
+      alert("You can't invite yourself!");
       return;
     }
 
     try {
       await addTeammateToTeam(currentUser.steamId, teamName, playerSteamId);
-      setInviteStatus((prev) => ({ ...prev, [playerSteamId]: "invited" }));
-    } catch (error) {
-      console.error("Failed to invite player:", error);
+      setInviteStatus((prev) => ({ ...prev, [inviteKey]: "invited" }));
+
+      console.log("✅ Successfully invited player");
+    } catch (err) {
+      console.error("❌ Invite failed:", err);
+      setInviteStatus((prev) => ({ ...prev, [inviteKey]: "error" }));
     }
   };
 
@@ -66,22 +79,19 @@ function FindPlayers() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {players.map((player) => {
-            const isSelf = player.steamId === currentUser?.steamId;
-            const isInvited = inviteStatus[player.steamId] === "invited";
+            const inviteKey = `${player.steam_id}-${selectedTeams[player.steam_id] || currentUser?.teams?.[0]?.name}`;
 
             return (
               <div
-                key={player.steamId}
+                key={player.steam_id}
                 className="bg-white/10 rounded-xl p-6 flex flex-col items-center text-center shadow-md hover:bg-white/20 transition"
               >
                 <img
-                  src={player.avatar || ""}
+                  src={player.avatar}
                   alt={player.username}
                   className="w-24 h-24 rounded-full mb-4 border-2 border-green-400"
                 />
-                <h2 className="text-xl font-semibold mb-1">
-                  {player.username}
-                </h2>
+                <h2 className="text-xl font-semibold mb-1">{player.username}</h2>
 
                 {/* Region and Rank */}
                 <div className="flex flex-wrap justify-center gap-2 mb-4">
@@ -104,13 +114,8 @@ function FindPlayers() {
                 {/* Team Select Dropdown */}
                 {currentUser?.teams?.length > 1 && (
                   <select
-                    onChange={(e) =>
-                      handleTeamSelect(player.steamId, e.target.value)
-                    }
-                    value={
-                      selectedTeams[player.steamId] ||
-                      currentUser.teams[0].name
-                    }
+                    onChange={(e) => handleTeamSelect(player.steam_id, e.target.value)}
+                    value={selectedTeams[player.steam_id] || currentUser.teams[0]?.name}
                     className="bg-gray-700 text-white p-2 rounded mb-3 text-sm w-full"
                   >
                     {currentUser.teams.map((team, idx) => (
@@ -122,24 +127,17 @@ function FindPlayers() {
                 )}
 
                 {/* Invite Button */}
-                {isSelf ? (
+                {inviteStatus[inviteKey] === "invited" ? (
                   <button
                     disabled
-                    className="bg-gray-500/50 text-white font-bold py-2 px-4 rounded-full cursor-not-allowed w-full"
-                  >
-                    You
-                  </button>
-                ) : isInvited ? (
-                  <button
-                    disabled
-                    className="bg-green-500/40 text-black font-bold py-2 px-4 rounded-full cursor-not-allowed w-full"
+                    className="bg-green-500/40 text-black font-bold py-2 px-4 rounded-full opacity-70 cursor-not-allowed w-full"
                   >
                     Invited ✅
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleInvite(player.steamId)}
-                    className="bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded-full w-full"
+                    onClick={() => handleInvite(player.steam_id)}
+                    className="bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded-full transition w-full"
                   >
                     Invite
                   </button>
