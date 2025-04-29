@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../data/db');
 const router = express.Router();
 
-// Create a new team
+// ✅ Create a new team
 router.post('/:steamId/create-team', async (req, res) => {
   const { name, members } = req.body;
   const { steamId } = req.params;
@@ -17,17 +17,24 @@ router.post('/:steamId/create-team', async (req, res) => {
        VALUES ($1, $2, $3, NOW())`,
       [name, steamId, members || []]
     );
-    return res.status(200).json({ message: "Team created successfully" });
+
+    res.status(200).json({ message: "Team created successfully" });
   } catch (err) {
     console.error("❌ Failed to create team:", err);
-    return res.status(500).json({ message: "Server error creating team" });
+    res.status(500).json({ message: "Server error creating team" });
   }
 });
 
-// Add teammate to a team
+// ✅ Add a teammate
 router.post('/:steamId/:teamName/add-teammate', async (req, res) => {
   const { steamId, teamName } = req.params;
   const { teammateId } = req.body;
+
+  console.log("🚀 Add teammate request:", { steamId, teamName, teammateId });
+
+  if (!teammateId || !steamId || !teamName) {
+    return res.status(400).json({ message: "Missing data" });
+  }
 
   try {
     const result = await db.query(
@@ -40,24 +47,32 @@ router.post('/:steamId/:teamName/add-teammate', async (req, res) => {
     }
 
     const team = result.rows[0];
-    if (team.members.includes(teammateId)) {
+    const currentMembers = team.members || [];
+
+    if (currentMembers.includes(teammateId)) {
       return res.status(400).json({ message: "Teammate already added" });
     }
 
-    const updatedMembers = [...team.members, teammateId];
+    const updatedMembers = [...currentMembers, teammateId];
+
     await db.query(
       `UPDATE teams SET members = $1 WHERE id = $2`,
       [updatedMembers, team.id]
     );
 
-    res.status(200).json({ message: "Teammate added", team: { ...team, members: updatedMembers } });
+    console.log(`✅ Added ${teammateId} to team '${team.name}' (team ID: ${team.id})`);
+
+    res.status(200).json({
+      message: "Teammate added",
+      team: { ...team, members: updatedMembers },
+    });
   } catch (err) {
     console.error("❌ Error adding teammate:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Remove teammate
+// ✅ Remove a teammate
 router.post('/:steamId/:teamName/remove-teammate', async (req, res) => {
   const { steamId, teamName } = req.params;
   const { teammateId } = req.body;
@@ -73,21 +88,26 @@ router.post('/:steamId/:teamName/remove-teammate', async (req, res) => {
     }
 
     const team = result.rows[0];
-    const updatedMembers = team.members.filter(id => id !== teammateId);
+    const updatedMembers = (team.members || []).filter(id => id !== teammateId);
 
     await db.query(
       `UPDATE teams SET members = $1 WHERE id = $2`,
       [updatedMembers, team.id]
     );
 
-    res.status(200).json({ message: "Teammate removed", team: { ...team, members: updatedMembers } });
+    console.log(`🗑️ Removed ${teammateId} from team '${team.name}'`);
+
+    res.status(200).json({
+      message: "Teammate removed",
+      team: { ...team, members: updatedMembers },
+    });
   } catch (err) {
     console.error("❌ Error removing teammate:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Delete team
+// ✅ Delete a team
 router.delete('/:steamId/:teamIndex', async (req, res) => {
   const { steamId, teamIndex } = req.params;
 
@@ -97,16 +117,15 @@ router.delete('/:steamId/:teamIndex', async (req, res) => {
       [steamId]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "No teams found" });
+    if (result.rows.length === 0 || !result.rows[teamIndex]) {
+      return res.status(404).json({ message: "Team not found" });
     }
 
     const team = result.rows[teamIndex];
-    if (!team) {
-      return res.status(404).json({ message: "Team index out of range" });
-    }
 
     await db.query(`DELETE FROM teams WHERE id = $1`, [team.id]);
+
+    console.log(`🗑️ Deleted team '${team.name}' (ID: ${team.id})`);
 
     res.status(200).json({ message: "Team deleted successfully" });
   } catch (err) {

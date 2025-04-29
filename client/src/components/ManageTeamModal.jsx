@@ -6,8 +6,8 @@ import {
 } from "../services/teamService";
 
 function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
-  const [searchInput, setSearchInput] = useState(""); // 🔥 for search
-  const [localTeam, setLocalTeam] = useState(team); // Local copy
+  const [searchInput, setSearchInput] = useState("");
+  const [localTeam, setLocalTeam] = useState(team);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [allPlayers, setAllPlayers] = useState([]);
 
@@ -18,13 +18,21 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
       .catch((err) => console.error("Failed to fetch players:", err));
   }, []);
 
-  const handleAddTeammate = async (teammateId) => {
-    if (!teammateId) return;
+  const handleAddTeammate = async (teammateSteamId) => {
+    console.log("👾 Inviting teammate:", teammateSteamId);
+    console.log("From userSteamId:", userSteamId);
+    console.log("To team:", team.name);
+
+    if (!userSteamId || !teammateSteamId || !team.name) {
+      console.error("🚫 Missing data for invite");
+      return;
+    }
+
     try {
-      await addTeammateToTeam(userSteamId, team.name, teammateId);
+      await addTeammateToTeam(userSteamId, team.name, teammateSteamId);
       setLocalTeam((prev) => ({
         ...prev,
-        members: [...prev.members, teammateId],
+        members: [...prev.members, { steamId: teammateSteamId }],
       }));
       onUpdated(`Added teammate to ${team.name}`);
     } catch (err) {
@@ -32,12 +40,16 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
     }
   };
 
-  const handleRemoveTeammate = async (teammateId) => {
+  const handleRemoveTeammate = async (teammateSteamId) => {
     try {
-      await removeTeammateFromTeam(userSteamId, team.name, teammateId);
+      await removeTeammateFromTeam(userSteamId, team.name, teammateSteamId);
       setLocalTeam((prev) => ({
         ...prev,
-        members: prev.members.filter((id) => id !== teammateId),
+        members: prev.members.filter(
+          (member) =>
+            (typeof member === "string" ? member : member.steamId) !==
+            teammateSteamId
+        ),
       }));
       onUpdated(`Removed teammate from ${team.name}`);
     } catch (err) {
@@ -65,14 +77,20 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
           {localTeam.members.length === 0 ? (
             <p className="text-gray-400 text-sm">No teammates yet.</p>
           ) : (
-            localTeam.members.map((teammateId, idx) => (
+            localTeam.members.map((member) => (
               <div
-                key={idx}
+                key={typeof member === "string" ? member : member.steamId}
                 className="flex justify-between items-center bg-white/10 px-3 py-2 rounded"
               >
-                <span className="text-sm">{teammateId}</span>
+                <span className="text-sm">
+                  {typeof member === "string" ? member : member.username || member.steamId}
+                </span>
                 <button
-                  onClick={() => handleRemoveTeammate(teammateId)}
+                  onClick={() =>
+                    handleRemoveTeammate(
+                      typeof member === "string" ? member : member.steamId
+                    )
+                  }
                   className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded"
                 >
                   Remove
@@ -86,7 +104,6 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
         <div className="mt-8">
           <h3 className="text-lg font-bold mb-2">Invite Players</h3>
 
-          {/* 🔥 Search Input */}
           <input
             type="text"
             placeholder="Search by username..."
@@ -101,11 +118,15 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
                 player.username.toLowerCase().includes(searchInput.toLowerCase())
               )
               .map((player) => {
-                const alreadyTeammate = localTeam.members.includes(player.steamId);
-                const isSelf = player.steamId === userSteamId;
+                const alreadyTeammate = localTeam.members.some(
+                  (m) =>
+                    (typeof m === "string" ? m : m.steamId) === player.steam_id
+                );
+                const isSelf = player.steam_id === userSteamId;
+
                 return (
                   <div
-                    key={player.steamId}
+                    key={player.steam_id}
                     className="bg-white/10 p-2 rounded flex items-center gap-2"
                   >
                     <img
@@ -132,7 +153,7 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
                       </button>
                     ) : (
                       <button
-                        onClick={() => handleAddTeammate(player.steamId)}
+                        onClick={() => handleAddTeammate(player.steam_id)}
                         className="bg-green-500 hover:bg-green-600 text-black text-xs font-bold px-2 py-1 rounded"
                       >
                         Invite
@@ -172,7 +193,7 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
           </button>
         )}
 
-        {/* Close Button */}
+        {/* Close */}
         <div className="flex justify-end mt-4">
           <button
             onClick={onClose}

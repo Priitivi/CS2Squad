@@ -4,8 +4,7 @@ const session = require('express-session');
 const cors = require('cors');
 require('dotenv').config();
 
-const { getUser } = require('./data/realDB'); // ✅ USE realDB NOW
-const db = require('./data/db'); // ✅ connection
+const db = require('./data/db'); // ✅ PostgreSQL connection
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -31,7 +30,7 @@ require('./app')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ DB Test route
+// ✅ Test database connection
 app.get('/test-db', async (req, res) => {
   try {
     const result = await db.query('SELECT NOW()');
@@ -42,6 +41,7 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
+// ✅ Root route
 app.get('/', (req, res) => {
   if (req.user) {
     res.send(`Welcome back, ${req.user.username}!`);
@@ -50,35 +50,59 @@ app.get('/', (req, res) => {
   }
 });
 
+// ✅ Fetch full profile
 app.get('/profile', async (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
 
   try {
-    const steamId = req.user.steam_id || req.user.steamId;
-    if (!steamId) return res.status(400).json({ message: "Steam ID missing from session user" });
+    const steamId = req.user.steam_id;
+    if (!steamId) return res.status(400).json({ message: "Steam ID missing" });
 
-    // Get user from DB
-    const userResult = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ message: "User not found in DB" });
-    }
-    const user = userResult.rows[0];
+    // 1. Fetch user
+    const userRes = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
+    if (userRes.rows.length === 0) return res.status(404).json({ message: "User not found" });
+    const user = userRes.rows[0];
 
-    // Get teams from DB
-    const teamResult = await db.query(
-      `SELECT id, name, members, created_at FROM teams WHERE owner_id = $1 ORDER BY created_at`,
+    // 2. Fetch teams
+    const teamRes = await db.query(
+      'SELECT id, name, members, created_at FROM teams WHERE owner_id = $1 ORDER BY created_at',
       [steamId]
     );
 
-    const teams = teamResult.rows.map((team, idx) => ({
-      id: team.id,
+    const allTeammateIds = new Set();
+    teamRes.rows.forEach(team => {
+      (team.members || []).forEach(id => allTeammateIds.add(id));
+    });
+
+    // 3. Enrich teammates with name/avatar
+    const teammateIdsArray = Array.from(allTeammateIds);
+    let teammates = [];
+
+    if (teammateIdsArray.length > 0) {
+      const teammateRes = await db.query(
+        'SELECT steam_id, username, avatar FROM users WHERE steam_id = ANY($1)',
+        [teammateIdsArray]
+      );
+      teammates = teammateRes.rows;
+    }
+
+    const teams = teamRes.rows.map((team, index) => ({
       name: team.name,
-      members: team.members,
+      members: (team.members || []).map(id => {
+        const match = teammates.find(t => t.steam_id === id);
+        return match
+          ? {
+              steamId: match.steam_id,
+              username: match.username,
+              avatar: match.avatar,
+            }
+          : { steamId: id };
+      }),
       createdAt: team.created_at,
-      originalIndex: idx,
+      originalIndex: index,
     }));
 
-    // Send full user + teams
+    // 4. Return full profile
     res.json({
       steamId: user.steam_id,
       username: user.username,
@@ -87,24 +111,18 @@ app.get('/profile', async (req, res) => {
       rank: user.rank,
       roles: user.roles || [],
       availability: user.availability || [],
-      teams: teams,
+      teams,
     });
   } catch (err) {
-    console.error("❌ Error fetching profile:", err);
+    console.error("❌ Error fetching profile from DB:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-
-
-// Routes
-const userRoutes = require('./routes/users');
-app.use('/users', userRoutes);
-
-const teamRoutes = require('./routes/team');
-app.use('/team', teamRoutes);
-
+// ✅ Routes
 app.use('/auth/steam', require('./routes/authSteam'));
+app.use('/users', require('./routes/users'));
+app.use('/team', require('./routes/team'));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
