@@ -10,9 +10,20 @@ async function getUser(steamId) {
 
 // Get all users
 async function getAllUsers() {
-  const { rows } = await db.query('SELECT * FROM users');
-  return rows;
+  const { rows } = await db.query(`
+    SELECT steam_id, username, avatar, region, rank
+    FROM users
+  `);
+
+  return rows.map(row => ({
+    steamId: row.steam_id,
+    username: row.username,
+    avatar: row.avatar,
+    region: row.region,
+    rank: row.rank,
+  }));
 }
+
 
 // Add a user (during first login)
 async function addUser(user) {
