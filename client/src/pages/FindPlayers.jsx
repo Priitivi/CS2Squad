@@ -6,11 +6,13 @@ function FindPlayers() {
   const [currentUser, setCurrentUser] = useState(null);
   const [inviteStatus, setInviteStatus] = useState({});
   const [selectedTeams, setSelectedTeams] = useState({});
+  
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const profileRes = await fetch("http://localhost:5000/profile", {
+        const profileRes = await fetch(`${API_BASE}/profile`, {
           credentials: "include",
         });
         const profileData = await profileRes.json();
@@ -20,7 +22,7 @@ function FindPlayers() {
           setCurrentUser(profileData);
         }
 
-        const usersRes = await fetch("http://localhost:5000/users", {
+        const usersRes = await fetch(`${API_BASE}/users`, {
           credentials: "include",
         });
         const usersData = await usersRes.json();
@@ -33,7 +35,7 @@ function FindPlayers() {
     };
 
     fetchData();
-  }, []);
+  }, [API_BASE]);
 
   const handleInvite = async (playerSteamId) => {
     const teamName = selectedTeams[playerSteamId] || currentUser?.teams?.[0]?.name;

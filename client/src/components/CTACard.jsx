@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 function CTACard({ user }) {
   return (
     <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between">
@@ -20,7 +22,7 @@ function CTACard({ user }) {
         </Link>
       ) : (
         <a
-          href="http://localhost:5000/auth/steam"
+          href={`${API_BASE}/auth/steam`}
           className="bg-white text-green-600 hover:text-green-700 text-center font-bold py-2 px-4 rounded-lg shadow transition duration-200"
         >
           Log In with Steam

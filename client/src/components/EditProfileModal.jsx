@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import PremierRankSlider from "./PremierRankSlider";
 import RegionSelector from "./RegionSelector";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 function EditProfileModal({ user, onClose, onSave }) {
   const [formData, setFormData] = useState({
     rank: parseInt(user.rank) || 0,
@@ -24,7 +26,7 @@ function EditProfileModal({ user, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError(null);
-    fetch(`http://localhost:5000/users/${user.steamId}/edit`, {
+    fetch(`${API_BASE}/users/${user.steamId}/edit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -35,7 +37,6 @@ function EditProfileModal({ user, onClose, onSave }) {
         onSave(updatedUser.user);
         setSuccess(true);
 
-        // Show banner, THEN close after
         setTimeout(() => {
           setSuccess(false);
           setTimeout(() => {
@@ -53,14 +54,12 @@ function EditProfileModal({ user, onClose, onSave }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="relative bg-gray-900 p-6 rounded-lg shadow-xl max-w-md w-full">
 
-        {/* Success Banner */}
         {success && (
           <div className="absolute top-0 left-0 right-0 bg-green-500 text-black font-semibold text-center py-2 rounded-t-lg animate-slideDown">
             Profile updated successfully! 🎉
           </div>
         )}
 
-        {/* Error Banner */}
         {error && (
           <div className="bg-red-500 text-white text-center p-2 rounded mb-4">
             {error}
@@ -71,13 +70,11 @@ function EditProfileModal({ user, onClose, onSave }) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Premier Rank Slider */}
           <PremierRankSlider
             value={formData.rank}
             onChange={(value) => setFormData((prev) => ({ ...prev, rank: value }))}
           />
 
-          {/* Region Selector */}
           <div>
             <label className="block mb-2 font-medium">Select Region</label>
             <RegionSelector
@@ -86,7 +83,6 @@ function EditProfileModal({ user, onClose, onSave }) {
             />
           </div>
 
-          {/* Roles */}
           <div>
             <label className="block mb-1 font-medium">Roles</label>
             <div className="flex gap-3 flex-wrap">
@@ -105,7 +101,6 @@ function EditProfileModal({ user, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"

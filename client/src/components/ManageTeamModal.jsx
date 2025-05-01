@@ -5,6 +5,8 @@ import {
   deleteTeam,
 } from "../services/teamService";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
   const [searchInput, setSearchInput] = useState("");
   const [localTeam, setLocalTeam] = useState(team);
@@ -12,7 +14,7 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
   const [allPlayers, setAllPlayers] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/users", { credentials: "include" })
+    fetch(`${API_BASE}/users`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setAllPlayers(data))
       .catch((err) => console.error("❌ Failed to fetch players:", err));

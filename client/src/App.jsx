@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Profile from "./pages/Profile";
 import Home from "./pages/Home";
-import FindPlayers from "./pages/FindPlayers"; // 🌟 NEW
-import Navbar from "./components/Navbar"; // 🌟 NEW
+import FindPlayers from "./pages/FindPlayers";
+import Navbar from "./components/Navbar";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 function App() {
   const [user, setUser] = useState(null);
@@ -11,7 +13,7 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/profile", {
+    fetch(`${API_BASE}/profile`, {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -32,14 +34,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white font-sans">
-      {/* Navbar */}
-      <Navbar user={user} /> {/* 🌟 Use new Navbar here */}
+      <Navbar user={user} />
 
-      {/* Routes */}
       <Routes>
         <Route path="/" element={<Home user={user} userCount={userCount} />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/findplayers" element={<FindPlayers />} /> {/* 🌟 New Route */}
+        <Route path="/findplayers" element={<FindPlayers />} />
       </Routes>
     </div>
   );

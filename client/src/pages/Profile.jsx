@@ -9,8 +9,10 @@ function Profile() {
   const [showModal, setShowModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
   const fetchUserProfile = () => {
-    fetch("http://localhost:5000/profile", {
+    fetch(`${API_BASE}/profile`, {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -24,7 +26,7 @@ function Profile() {
 
   useEffect(() => {
     fetchUserProfile();
-  }, []);
+  }, [API_BASE]);
 
   const handleSave = () => {
     fetchUserProfile();

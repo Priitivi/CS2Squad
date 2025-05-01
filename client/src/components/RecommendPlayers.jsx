@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 function RecommendPlayers() {
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/users", { credentials: "include" })
+    fetch(`${API_BASE}/users`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         // Pick 3 random players
@@ -40,9 +42,15 @@ function RecommendPlayers() {
               {/* Back */}
               <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-black text-white p-2 flex flex-col justify-center items-center rounded-xl">
                 <p className="text-sm font-bold">{player.username}</p>
-                <p className="text-xs text-gray-400 mt-1">Rank: {player.rank || "Unranked"}</p>
-                <p className="text-xs text-gray-400">Region: {player.region || "N/A"}</p>
-                <p className="text-[10px] mt-2 text-blue-300">Click to view on Steam</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Rank: {player.rank || "Unranked"}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Region: {player.region || "N/A"}
+                </p>
+                <p className="text-[10px] mt-2 text-blue-300">
+                  Click to view on Steam
+                </p>
               </div>
             </div>
           </div>

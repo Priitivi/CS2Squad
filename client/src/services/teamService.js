@@ -1,8 +1,6 @@
-// client/src/services/teamService.js
-
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/team';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export async function addTeammate(userSteamId, teammateSteamId) {
   const res = await axios.post(`${API_BASE}/${userSteamId}/add-teammate`, { teammateId: teammateSteamId }, { withCredentials: true });
@@ -30,12 +28,11 @@ export async function deleteTeam(userSteamId, teamIndex) {
 }
 
 export async function addTeammateToTeam(userSteamId, teamName, teammateId) {
-  const res = await axios.post(`http://localhost:5000/team/${userSteamId}/${teamName}/add-teammate`, { teammateId }, { withCredentials: true });
+  const res = await axios.post(`${API_BASE}/team/${userSteamId}/${teamName}/add-teammate`, { teammateId }, { withCredentials: true });
   return res.data;
 }
 
 export async function removeTeammateFromTeam(userSteamId, teamName, teammateId) {
-  const res = await axios.post(`http://localhost:5000/team/${userSteamId}/${teamName}/remove-teammate`, { teammateId }, { withCredentials: true });
+  const res = await axios.post(`${API_BASE}/team/${userSteamId}/${teamName}/remove-teammate`, { teammateId }, { withCredentials: true });
   return res.data;
 }
-
