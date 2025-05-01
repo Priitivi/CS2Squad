@@ -10,9 +10,10 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: 'https://cs2squad-frontend.onrender.com',
+  origin: ['http://localhost:5173', 'https://cs2squad-frontend.onrender.com'],
   credentials: true,
 }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -22,10 +23,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
-    sameSite: 'lax',
+    secure: true,        // important for cross-site cookies over HTTPS
+    sameSite: 'none',    // allows frontend on another domain to use the cookie
   },
 }));
+
 
 require('./app')(passport);
 app.use(passport.initialize());

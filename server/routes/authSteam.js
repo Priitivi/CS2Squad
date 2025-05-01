@@ -2,8 +2,11 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-// Redirect to Steam login page
-router.get('/', passport.authenticate('steam'));
+router.get('/', (req, res, next) => {
+  console.log('🚀 Reached /auth/steam route');
+  next();
+}, passport.authenticate('steam'));
+
 
 // Steam callback route
 router.get('/return', passport.authenticate('steam', {
