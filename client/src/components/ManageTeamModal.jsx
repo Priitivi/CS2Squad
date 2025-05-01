@@ -15,7 +15,7 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
     fetch("http://localhost:5000/users", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setAllPlayers(data))
-      .catch((err) => console.error("Failed to fetch players:", err));
+      .catch((err) => console.error("❌ Failed to fetch players:", err));
   }, []);
 
   const handleAddTeammate = async (teammateSteamId) => {
@@ -36,7 +36,7 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
       }));
       onUpdated(`Added teammate to ${team.name}`);
     } catch (err) {
-      console.error("Failed to add teammate:", err);
+      console.error("❌ Failed to add teammate:", err);
     }
   };
 
@@ -47,13 +47,12 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
         ...prev,
         members: prev.members.filter(
           (member) =>
-            (typeof member === "string" ? member : member.steamId) !==
-            teammateSteamId
+            (typeof member === "string" ? member : member.steamId) !== teammateSteamId
         ),
       }));
       onUpdated(`Removed teammate from ${team.name}`);
     } catch (err) {
-      console.error("Failed to remove teammate:", err);
+      console.error("❌ Failed to remove teammate:", err);
     }
   };
 
@@ -63,7 +62,7 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
       onUpdated(`Deleted team ${team.name}`);
       onClose();
     } catch (err) {
-      console.error("Failed to delete team:", err);
+      console.error("❌ Failed to delete team:", err);
     }
   };
 
@@ -83,7 +82,9 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
                 className="flex justify-between items-center bg-white/10 px-3 py-2 rounded"
               >
                 <span className="text-sm">
-                  {typeof member === "string" ? member : member.username || member.steamId}
+                  {typeof member === "string"
+                    ? member
+                    : member.username || member.steamId}
                 </span>
                 <button
                   onClick={() =>
@@ -120,13 +121,13 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
               .map((player) => {
                 const alreadyTeammate = localTeam.members.some(
                   (m) =>
-                    (typeof m === "string" ? m : m.steamId) === player.steam_id
+                    (typeof m === "string" ? m : m.steamId) === player.steamId
                 );
-                const isSelf = player.steam_id === userSteamId;
+                const isSelf = player.steamId === userSteamId;
 
                 return (
                   <div
-                    key={player.steam_id}
+                    key={player.steamId}
                     className="bg-white/10 p-2 rounded flex items-center gap-2"
                   >
                     <img
@@ -153,7 +154,7 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
                       </button>
                     ) : (
                       <button
-                        onClick={() => handleAddTeammate(player.steam_id)}
+                        onClick={() => handleAddTeammate(player.steamId)}
                         className="bg-green-500 hover:bg-green-600 text-black text-xs font-bold px-2 py-1 rounded"
                       >
                         Invite

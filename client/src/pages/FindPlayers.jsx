@@ -1,5 +1,3 @@
-// client/src/pages/FindPlayers.jsx
-
 import React, { useEffect, useState } from "react";
 import { addTeammateToTeam } from "../services/teamService";
 
@@ -79,11 +77,11 @@ function FindPlayers() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {players.map((player) => {
-            const inviteKey = `${player.steam_id}-${selectedTeams[player.steam_id] || currentUser?.teams?.[0]?.name}`;
+            const inviteKey = `${player.steamId}-${selectedTeams[player.steamId] || currentUser?.teams?.[0]?.name}`;
 
             return (
               <div
-                key={player.steam_id}
+                key={player.steamId}
                 className="bg-white/10 rounded-xl p-6 flex flex-col items-center text-center shadow-md hover:bg-white/20 transition"
               >
                 <img
@@ -93,7 +91,6 @@ function FindPlayers() {
                 />
                 <h2 className="text-xl font-semibold mb-1">{player.username}</h2>
 
-                {/* Region and Rank */}
                 <div className="flex flex-wrap justify-center gap-2 mb-4">
                   {player.region && (
                     <span className="bg-blue-500/80 text-white text-xs font-semibold px-2 py-1 rounded-full">
@@ -111,11 +108,10 @@ function FindPlayers() {
                   )}
                 </div>
 
-                {/* Team Select Dropdown */}
                 {currentUser?.teams?.length > 1 && (
                   <select
-                    onChange={(e) => handleTeamSelect(player.steam_id, e.target.value)}
-                    value={selectedTeams[player.steam_id] || currentUser.teams[0]?.name}
+                    onChange={(e) => handleTeamSelect(player.steamId, e.target.value)}
+                    value={selectedTeams[player.steamId] || currentUser.teams[0]?.name}
                     className="bg-gray-700 text-white p-2 rounded mb-3 text-sm w-full"
                   >
                     {currentUser.teams.map((team, idx) => (
@@ -126,7 +122,6 @@ function FindPlayers() {
                   </select>
                 )}
 
-                {/* Invite Button */}
                 {inviteStatus[inviteKey] === "invited" ? (
                   <button
                     disabled
@@ -136,7 +131,7 @@ function FindPlayers() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleInvite(player.steam_id)}
+                    onClick={() => handleInvite(player.steamId)}
                     className="bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded-full transition w-full"
                   >
                     Invite
