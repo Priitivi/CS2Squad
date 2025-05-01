@@ -5,13 +5,12 @@ function CTACard({ user }) {
   return (
     <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between">
       <div>
-        <h3 className="text-2xl font-bold mb-2">Ready to Squad Up?</h3>
+        <h3 className="text-2xl font-bold mb-2">Ready to Dive In?</h3>
         <p className="text-sm mb-4">
-          Join thousands of players building the ultimate CS2 teams. Create your profile, filter by playstyle, and start climbing the ranks—together.
+          Join the app, set up your profile, and start connecting with players who match your playstyle and goals.
         </p>
       </div>
 
-      {/* 🔥 If user is logged in, show 'Go to Profile'. Otherwise show 'Sign In' */}
       {user ? (
         <Link
           to="/profile"
@@ -24,9 +23,18 @@ function CTACard({ user }) {
           href="http://localhost:5000/auth/steam"
           className="bg-white text-green-600 hover:text-green-700 text-center font-bold py-2 px-4 rounded-lg shadow transition duration-200"
         >
-          Build Your Squad
+          Log In with Steam
         </a>
       )}
+
+      <a
+        href="https://github.com/priitivi/cs2squad"
+        className="mt-3 text-sm text-white hover:underline text-center"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View Source on GitHub
+      </a>
     </div>
   );
 }

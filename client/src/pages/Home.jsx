@@ -4,20 +4,21 @@ import StatCard from "../components/StatCard";
 import HowItWorksCard from "../components/HowItWorksCard";
 import CTACard from "../components/CTACard";
 import ExtraCard from "../components/ExtraCard";
-import TestimonialCard from "../components/TestimonialCard";
+import ProjectInfoCard from "../components/ProjectInfoCard";
+import Footer from "../components/Footer";
 
 function Home({ user, userCount }) {
   return (
     <>
       <main className="flex flex-col items-center justify-center text-center mt-24 px-6">
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
-          Find your perfect CS2 teammates
+          CS2Squad — Find and Build Your Perfect Team
         </h1>
         <p className="text-lg text-gray-300 mb-6 max-w-xl">
-          Match by rank, region, and playstyle. No more solo queues, just good vibes.
+          A full-stack matchmaking platform for CS2 players. Match by rank, region, and playstyle — built with PostgreSQL, Express, React, and Node.
         </p>
         <div className="text-2xl font-mono text-green-400">
-          🔄 {userCount.toLocaleString()} players connected
+         🔍 Full-stack PERN project with Steam integration
         </div>
       </main>
 
@@ -26,9 +27,11 @@ function Home({ user, userCount }) {
         <StatCard />
         <HowItWorksCard />
         <ExtraCard />
-        <TestimonialCard />
-        <CTACard user={user} /> {/* 🔥 Pass user into CTA card */}
+        <ProjectInfoCard />
+        <CTACard user={user} />
       </section>
+
+      <Footer />
     </>
   );
 }
