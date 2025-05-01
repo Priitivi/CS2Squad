@@ -10,7 +10,7 @@ router.get('/return', passport.authenticate('steam', {
   failureRedirect: '/login',
 }), (req, res) => {
   console.log('✅ Logged in successfully, user:', req.user);
-  res.redirect('http://localhost:5173/profile');
+  res.redirect('https://cs2squad-frontend.onrender.com/profile');
 });
 
 
