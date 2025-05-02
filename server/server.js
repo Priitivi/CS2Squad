@@ -9,29 +9,39 @@ const db = require('./data/db'); // ✅ PostgreSQL connection
 const app = express();
 const port = process.env.PORT || 5000;
 
+// ✅ CORS config for frontend
 app.use(cors({
   origin: ['https://cs2squad-frontend.onrender.com'],
   credentials: true,
 }));
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ Session setup
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,        // important for cross-site cookies over HTTPS
-    sameSite: 'none',    // allows frontend on another domain to use the cookie
+    secure: true,        // must be true on HTTPS
+    sameSite: 'none',    // allow cross-site cookies
   },
 }));
-
 
 require('./app')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
+
+// ✅ Debug session route
+app.get('/debug-session', (req, res) => {
+  console.log('🕵️‍♂️ Debug session hit');
+  res.json({
+    isAuthenticated: req.isAuthenticated(),
+    user: req.user || null,
+    session: req.session || null,
+  });
+});
 
 // ✅ Test database connection
 app.get('/test-db', async (req, res) => {
@@ -55,18 +65,19 @@ app.get('/', (req, res) => {
 
 // ✅ Fetch full profile
 app.get('/profile', async (req, res) => {
-  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+  if (!req.user) {
+    console.log('🔒 Not authenticated for profile page');
+    return res.status(401).json({ message: "Not authenticated" });
+  }
 
   try {
     const steamId = req.user.steam_id;
     if (!steamId) return res.status(400).json({ message: "Steam ID missing" });
 
-    // 1. Fetch user
     const userRes = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
     if (userRes.rows.length === 0) return res.status(404).json({ message: "User not found" });
     const user = userRes.rows[0];
 
-    // 2. Fetch teams
     const teamRes = await db.query(
       'SELECT id, name, members, created_at FROM teams WHERE owner_id = $1 ORDER BY created_at',
       [steamId]
@@ -77,14 +88,11 @@ app.get('/profile', async (req, res) => {
       (team.members || []).forEach(id => allTeammateIds.add(id));
     });
 
-    // 3. Enrich teammates with name/avatar
-    const teammateIdsArray = Array.from(allTeammateIds);
     let teammates = [];
-
-    if (teammateIdsArray.length > 0) {
+    if (allTeammateIds.size > 0) {
       const teammateRes = await db.query(
         'SELECT steam_id, username, avatar FROM users WHERE steam_id = ANY($1)',
-        [teammateIdsArray]
+        [Array.from(allTeammateIds)]
       );
       teammates = teammateRes.rows;
     }
@@ -105,7 +113,6 @@ app.get('/profile', async (req, res) => {
       originalIndex: index,
     }));
 
-    // 4. Return full profile
     res.json({
       steamId: user.steam_id,
       username: user.username,
