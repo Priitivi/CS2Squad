@@ -6,22 +6,34 @@ import EditProfileModal from "../components/EditProfileModal";
 
 function Profile() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-  const fetchUserProfile = () => {
-    fetch(`${API_BASE}/profile`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
+  const fetchUserProfile = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/profile`, { credentials: "include" });
+
+      if (res.status === 401) {
+        console.log("🔒 Not authenticated for profile page");
+        setUser(null);
+      } else {
+        const data = await res.json();
         if (data.username) {
           setUser({ ...data, teams: data.teams || [] });
+        } else {
+          setUser(null);
         }
-      })
-      .catch(() => setUser(null));
+      }
+    } catch (err) {
+      console.error("❌ Error loading profile:", err);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -42,6 +54,14 @@ function Profile() {
   };
 
   const handleClose = () => setShowModal(false);
+
+  if (loading) {
+    return (
+      <div className="text-white p-6">
+        <h2 className="text-center text-2xl mt-24">Loading profile...</h2>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

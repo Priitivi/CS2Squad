@@ -13,17 +13,32 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${API_BASE}/profile`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.username) {
-          setUser(data);
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/profile`, { credentials: "include" });
+
+        if (res.status === 401) {
+          console.log("🔒 Not logged in");
+          setUser(null);
+          return;
         }
-      })
-      .catch(() => setUser(null));
-  }, []);
+
+        const data = await res.json();
+
+        if (data.username) {
+          console.log("✅ Logged-in user loaded:", data);
+          setUser(data);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch user:", err);
+        setUser(null);
+      }
+    };
+
+    fetchUser();
+  }, [API_BASE]);
 
   useEffect(() => {
     const interval = setInterval(() => {

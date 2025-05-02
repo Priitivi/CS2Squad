@@ -38,7 +38,14 @@ function FindPlayers() {
   }, [API_BASE]);
 
   const handleInvite = async (playerSteamId) => {
-    const teamName = selectedTeams[playerSteamId] || currentUser?.teams?.[0]?.name;
+    const fallbackTeamName = currentUser?.teams?.length > 0 ? currentUser.teams[0].name : null;
+    const teamName = selectedTeams[playerSteamId] || fallbackTeamName;
+
+    if (!teamName) {
+      alert("❌ You don't have any teams to invite players to. Please create a team first!");
+      return;
+    }
+
     const inviteKey = `${playerSteamId}-${teamName}`;
 
     console.log("🚀 Clicking Invite button");
