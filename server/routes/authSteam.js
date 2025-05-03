@@ -21,7 +21,7 @@ router.get('/return', passport.authenticate('steam', {
     }
 
     console.log('✅ Session saved, redirecting to frontend');
-    res.redirect('https://cs2squad-frontend.onrender.com/profile');
+    res.redirect('https://cs2squad.com/profile');
   });
 });
 
