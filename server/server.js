@@ -9,7 +9,6 @@ const db = require('./data/db'); // ✅ PostgreSQL connection
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ CORS config for frontend
 app.use(cors({
   origin: ['https://cs2squad-frontend.onrender.com'],
   credentials: true,
@@ -18,30 +17,21 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Session setup
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,        // must be true on HTTPS
-    sameSite: 'none',    // allow cross-site cookies
+    secure: true,           // important for HTTPS
+    httpOnly: true,         // only accessible from server
+    sameSite: 'none',       // allows cross-site requests
+    domain: '.onrender.com' // ✅ KEY CHANGE: share cookie across subdomains
   },
 }));
 
 require('./app')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
-
-// ✅ Debug session route
-app.get('/debug-session', (req, res) => {
-  console.log('🕵️‍♂️ Debug session hit');
-  res.json({
-    isAuthenticated: req.isAuthenticated(),
-    user: req.user || null,
-    session: req.session || null,
-  });
-});
 
 // ✅ Test database connection
 app.get('/test-db', async (req, res) => {
@@ -102,11 +92,7 @@ app.get('/profile', async (req, res) => {
       members: (team.members || []).map(id => {
         const match = teammates.find(t => t.steam_id === id);
         return match
-          ? {
-              steamId: match.steam_id,
-              username: match.username,
-              avatar: match.avatar,
-            }
+          ? { steamId: match.steam_id, username: match.username, avatar: match.avatar }
           : { steamId: id };
       }),
       createdAt: team.created_at,
