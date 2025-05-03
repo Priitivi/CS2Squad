@@ -9,20 +9,11 @@ const db = require('./data/db'); // ✅ PostgreSQL connection
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ CORS: allow both custom domain and temporary onrender frontend
 app.use(cors({
-  origin: [
-    'https://cs2squad.com',
-    'https://www.cs2squad.com',
-    'https://cs2squad-frontend.onrender.com', // TEMP while migrating
-  ],
+  origin: ['https://cs2squad.com', 'https://www.cs2squad.com'],
   credentials: true,
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ✅ SESSION COOKIE CONFIG for cross-domain
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -31,9 +22,10 @@ app.use(session({
     secure: true,
     httpOnly: true,
     sameSite: 'none',
-    domain: '.cs2squad.com', // ✅ ensures it works across api.cs2squad.com + cs2squad.com
+    domain: '.cs2squad.com',  // ✅ allow across api.cs2squad.com + cs2squad.com
   },
 }));
+
 
 require('./app')(passport);
 app.use(passport.initialize());
