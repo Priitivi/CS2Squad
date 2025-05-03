@@ -4,13 +4,13 @@ const session = require('express-session');
 const cors = require('cors');
 require('dotenv').config();
 
-const db = require('./data/db'); // ✅ PostgreSQL connection
+const db = require('./data/db');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: ['https://cs2squad-frontend.onrender.com'],
+  origin: ['https://cs2squad.com'], // frontend domain
   credentials: true,
 }));
 
@@ -22,10 +22,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,           // important for HTTPS
-    httpOnly: true,         // only accessible from server
-    sameSite: 'none',       // allows cross-site requests
-    domain: '.onrender.com' // ✅ KEY CHANGE: share cookie across subdomains
+    secure: true,           // ensure cookies only sent over HTTPS
+    httpOnly: true,         // prevent JS from accessing cookie
+    sameSite: 'none',       // allow cross-site
+    domain: '.cs2squad.com' // matches both cs2squad.com + api.cs2squad.com
   },
 }));
 
@@ -46,24 +46,15 @@ app.get('/test-db', async (req, res) => {
 
 // ✅ Root route
 app.get('/', (req, res) => {
-  if (req.user) {
-    res.send(`Welcome back, ${req.user.username}!`);
-  } else {
-    res.send('CS2Squad Backend API');
-  }
+  res.send('CS2Squad Backend API');
 });
 
 // ✅ Fetch full profile
 app.get('/profile', async (req, res) => {
-  if (!req.user) {
-    console.log('🔒 Not authenticated for profile page');
-    return res.status(401).json({ message: "Not authenticated" });
-  }
+  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
 
   try {
     const steamId = req.user.steam_id;
-    if (!steamId) return res.status(400).json({ message: "Steam ID missing" });
-
     const userRes = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
     if (userRes.rows.length === 0) return res.status(404).json({ message: "User not found" });
     const user = userRes.rows[0];
@@ -91,9 +82,11 @@ app.get('/profile', async (req, res) => {
       name: team.name,
       members: (team.members || []).map(id => {
         const match = teammates.find(t => t.steam_id === id);
-        return match
-          ? { steamId: match.steam_id, username: match.username, avatar: match.avatar }
-          : { steamId: id };
+        return match ? {
+          steamId: match.steam_id,
+          username: match.username,
+          avatar: match.avatar,
+        } : { steamId: id };
       }),
       createdAt: team.created_at,
       originalIndex: index,
