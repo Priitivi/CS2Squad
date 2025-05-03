@@ -4,28 +4,34 @@ const session = require('express-session');
 const cors = require('cors');
 require('dotenv').config();
 
-const db = require('./data/db');
+const db = require('./data/db'); // ✅ PostgreSQL connection
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+// ✅ CORS: allow both custom domain and temporary onrender frontend
 app.use(cors({
-  origin: ['https://cs2squad.com'], // frontend domain
+  origin: [
+    'https://cs2squad.com',
+    'https://www.cs2squad.com',
+    'https://cs2squad-frontend.onrender.com', // TEMP while migrating
+  ],
   credentials: true,
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ SESSION COOKIE CONFIG for cross-domain
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,           // ensure cookies only sent over HTTPS
-    httpOnly: true,         // prevent JS from accessing cookie
-    sameSite: 'none',       // allow cross-site
-    domain: '.cs2squad.com' // matches both cs2squad.com + api.cs2squad.com
+    secure: true,
+    httpOnly: true,
+    sameSite: 'none',
+    domain: '.cs2squad.com', // ✅ ensures it works across api.cs2squad.com + cs2squad.com
   },
 }));
 
@@ -33,7 +39,7 @@ require('./app')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Test database connection
+// ✅ Test DB
 app.get('/test-db', async (req, res) => {
   try {
     const result = await db.query('SELECT NOW()');
@@ -44,17 +50,23 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
-// ✅ Root route
+// ✅ Root
 app.get('/', (req, res) => {
-  res.send('CS2Squad Backend API');
+  if (req.user) {
+    res.send(`Welcome back, ${req.user.username}!`);
+  } else {
+    res.send('CS2Squad Backend API');
+  }
 });
 
-// ✅ Fetch full profile
+// ✅ Profile route
 app.get('/profile', async (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
 
   try {
     const steamId = req.user.steam_id;
+    if (!steamId) return res.status(400).json({ message: "Steam ID missing" });
+
     const userRes = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
     if (userRes.rows.length === 0) return res.status(404).json({ message: "User not found" });
     const user = userRes.rows[0];
@@ -70,10 +82,11 @@ app.get('/profile', async (req, res) => {
     });
 
     let teammates = [];
-    if (allTeammateIds.size > 0) {
+    const teammateIdsArray = Array.from(allTeammateIds);
+    if (teammateIdsArray.length > 0) {
       const teammateRes = await db.query(
         'SELECT steam_id, username, avatar FROM users WHERE steam_id = ANY($1)',
-        [Array.from(allTeammateIds)]
+        [teammateIdsArray]
       );
       teammates = teammateRes.rows;
     }
@@ -82,11 +95,9 @@ app.get('/profile', async (req, res) => {
       name: team.name,
       members: (team.members || []).map(id => {
         const match = teammates.find(t => t.steam_id === id);
-        return match ? {
-          steamId: match.steam_id,
-          username: match.username,
-          avatar: match.avatar,
-        } : { steamId: id };
+        return match
+          ? { steamId: match.steam_id, username: match.username, avatar: match.avatar }
+          : { steamId: id };
       }),
       createdAt: team.created_at,
       originalIndex: index,
