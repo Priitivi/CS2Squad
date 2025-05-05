@@ -11,16 +11,17 @@ router.get('/', (req, res, next) => {
 // Steam callback route
 router.get('/return', passport.authenticate('steam', {
   failureRedirect: '/login',
-}), (req, res, next) => {
+}), (req, res) => {
+  console.log('✅ Logged in successfully, user:', req.user);
+
+  // ✅ Generate JWT
   const token = jwt.sign(
     { steamId: req.user.steam_id, username: req.user.username },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
 
-  console.log('✅ Issued JWT:', token);
-
-  // Redirect back to frontend with token as query param
+  // ✅ Redirect to frontend with token
   res.redirect(`https://cs2squad.com/auth-success?token=${token}`);
 });
 
