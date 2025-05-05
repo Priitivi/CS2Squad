@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const session = require('express-session');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const db = require('./data/db'); // ✅ PostgreSQL connection
@@ -9,29 +10,34 @@ const db = require('./data/db'); // ✅ PostgreSQL connection
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors({
-  origin: ['https://cs2squad.com', 'https://www.cs2squad.com'],
-  credentials: true,
-}));
+// ✅ Serve static React build files
+app.use(express.static(path.join(__dirname, 'public')));
 
+// ✅ Express JSON body parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ✅ Session + passport setup
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',  // secure only in prod
     httpOnly: true,
-    sameSite: 'none',
-    domain: '.cs2squad.com',  // ✅ allow across api.cs2squad.com + cs2squad.com
+    sameSite: 'lax',  // no cross-domain needed anymore
   },
 }));
-
 
 require('./app')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Test DB
+// ✅ API routes
+app.use('/auth/steam', require('./routes/authSteam'));
+app.use('/users', require('./routes/users'));
+app.use('/team', require('./routes/team'));
+
 app.get('/test-db', async (req, res) => {
   try {
     const result = await db.query('SELECT NOW()');
@@ -42,23 +48,11 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
-// ✅ Root
-app.get('/', (req, res) => {
-  if (req.user) {
-    res.send(`Welcome back, ${req.user.username}!`);
-  } else {
-    res.send('CS2Squad Backend API');
-  }
-});
-
-// ✅ Profile route
 app.get('/profile', async (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Not authenticated" });
 
   try {
     const steamId = req.user.steam_id;
-    if (!steamId) return res.status(400).json({ message: "Steam ID missing" });
-
     const userRes = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
     if (userRes.rows.length === 0) return res.status(404).json({ message: "User not found" });
     const user = userRes.rows[0];
@@ -111,11 +105,11 @@ app.get('/profile', async (req, res) => {
   }
 });
 
-// ✅ Routes
-app.use('/auth/steam', require('./routes/authSteam'));
-app.use('/users', require('./routes/users'));
-app.use('/team', require('./routes/team'));
+// ✅ Catch-all route for React frontend
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`🚀 Server is running on port ${port}`);
 });
