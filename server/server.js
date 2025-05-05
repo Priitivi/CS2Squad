@@ -13,27 +13,28 @@ const port = process.env.PORT || 5000;
 // ✅ Serve static React build files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ Express JSON body parser
+// ✅ Express body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Session + passport setup
+// ✅ Sessions
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',  // secure only in prod
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax',  // no cross-domain needed anymore
+    sameSite: 'lax', // using lax since everything is on cs2squad.com
   },
 }));
 
+// ✅ Passport setup
 require('./app')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ API routes
+// ✅ API routes (ONLY relative paths)
 app.use('/auth/steam', require('./routes/authSteam'));
 app.use('/users', require('./routes/users'));
 app.use('/team', require('./routes/team'));

@@ -1,5 +1,17 @@
 {
+  "name": "cs2squad",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "pg": "^8.15.6"
+    "express": "^4.18.2",
+    "passport": "^0.6.0",
+    "passport-steam": "^1.0.11",
+    "express-session": "^1.17.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "pg": "^8.11.0"
   }
 }
