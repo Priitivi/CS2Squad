@@ -1,40 +1,42 @@
 const express = require('express');
 const passport = require('passport');
-const session = require('express-session');
 const cors = require('cors');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const db = require('./data/db'); // ✅ PostgreSQL connection
+const db = require('./data/db');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ Serve static React build files
 app.use(express.static(path.join(__dirname, 'public')));
-
-// ✅ Express body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Sessions
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'lax', // using lax since everything is on cs2squad.com
-  },
+// ✅ CORS for frontend
+app.use(cors({
+  origin: ['https://cs2squad.com'],
+  credentials: false, // no longer using cookies
 }));
 
-// ✅ Passport setup
 require('./app')(passport);
 app.use(passport.initialize());
-app.use(passport.session());
 
-// ✅ API routes (ONLY relative paths)
+// ✅ Middleware to check token
+function verifyToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: 'No token provided' });
+
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ message: 'Invalid token' });
+    req.user = decoded;
+    next();
+  });
+}
+
+// ✅ Routes
 app.use('/auth/steam', require('./routes/authSteam'));
 app.use('/users', require('./routes/users'));
 app.use('/team', require('./routes/team'));
@@ -49,11 +51,9 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
-app.get('/profile', async (req, res) => {
-  if (!req.user) return res.status(401).json({ message: "Not authenticated" });
-
+app.get('/profile', verifyToken, async (req, res) => {
   try {
-    const steamId = req.user.steam_id;
+    const steamId = req.user.steamId;
     const userRes = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
     if (userRes.rows.length === 0) return res.status(404).json({ message: "User not found" });
     const user = userRes.rows[0];
@@ -106,7 +106,7 @@ app.get('/profile', async (req, res) => {
   }
 });
 
-// ✅ Catch-all route for React frontend
+// ✅ React fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

@@ -15,7 +15,13 @@ function Profile() {
   const fetchUserProfile = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/profile`, { credentials: "include" });
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
 
       if (res.status === 401) {
         console.log("🔒 Not authenticated for profile page");

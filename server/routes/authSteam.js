@@ -1,5 +1,6 @@
 const express = require('express');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 router.get('/', (req, res, next) => {
@@ -11,18 +12,16 @@ router.get('/', (req, res, next) => {
 router.get('/return', passport.authenticate('steam', {
   failureRedirect: '/login',
 }), (req, res, next) => {
-  console.log('✅ Logged in successfully, user:', req.user);
+  const token = jwt.sign(
+    { steamId: req.user.steam_id, username: req.user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
 
-  // Ensure session is saved BEFORE redirecting
-  req.session.save((err) => {
-    if (err) {
-      console.error('❌ Error saving session:', err);
-      return next(err);
-    }
+  console.log('✅ Issued JWT:', token);
 
-    console.log('✅ Session saved, redirecting to frontend');
-    res.redirect('https://cs2squad.com/profile');
-  });
+  // Redirect back to frontend with token as query param
+  res.redirect(`https://cs2squad.com/auth-success?token=${token}`);
 });
 
 module.exports = router;

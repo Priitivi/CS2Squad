@@ -4,6 +4,7 @@ import Profile from "./pages/Profile";
 import Home from "./pages/Home";
 import FindPlayers from "./pages/FindPlayers";
 import Navbar from "./components/Navbar";
+import AuthSuccess from "./pages/AuthSuccess";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,7 +16,13 @@ function App() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${API_BASE}/profile`, { credentials: "include" });
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_BASE}/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
 
         if (res.status === 401) {
           console.log("🔒 Not logged in");
@@ -55,6 +62,7 @@ function App() {
         <Route path="/" element={<Home user={user} userCount={userCount} />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/findplayers" element={<FindPlayers />} />
+        <Route path="/auth-success" element={<AuthSuccess />} />
       </Routes>
     </div>
   );
