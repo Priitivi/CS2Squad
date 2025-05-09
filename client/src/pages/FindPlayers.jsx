@@ -13,12 +13,13 @@ function FindPlayers() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+
+        // ✅ Fetch profile with JWT
         const profileRes = await fetch(`${API_BASE}/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
         const profileData = await profileRes.json();
 
         if (profileData.username) {
@@ -28,13 +29,22 @@ function FindPlayers() {
           console.warn("⚠️ Profile data missing username (maybe not logged in)");
         }
 
+        // ✅ Fetch users with JWT
         const usersRes = await fetch(`${API_BASE}/users`, {
-          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         const usersData = await usersRes.json();
 
         console.log("✅ Loaded players:", usersData);
-        setPlayers(usersData);
+
+        if (Array.isArray(usersData)) {
+          setPlayers(usersData);
+        } else {
+          console.warn("⚠️ Expected an array but got:", usersData);
+          setPlayers([]); // Prevent crash
+        }
       } catch (err) {
         console.error("❌ Failed to fetch data:", err);
       }
