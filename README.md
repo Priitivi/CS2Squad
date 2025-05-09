@@ -6,10 +6,22 @@
 
 ## ✨ Live Demo
 
--🌐 Frontend: https://www.cs2squad.com
+- 🌐 Frontend: https://www.cs2squad.com
 - 🔗 API: https://api.cs2squad.com
 
 
+
+---
+
+## 🖼️ Screenshots
+
+### 🔐 Login & Matchmaking Page
+
+![Homepage](client/public/screenshots/Homepage.png)
+
+### 👤 Profile & Teams
+
+![Profile Page](client/public/screenshots/profile.png)
 
 ---
 
