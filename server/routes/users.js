@@ -1,22 +1,37 @@
 const express = require('express');
-const { getUser, updateUser, getAllUsers } = require('../data/realDB'); // ✅ Real database now
+const jwt = require('jsonwebtoken');
+const { getUser, updateUser, getAllUsers } = require('../data/realDB');
+
 const router = express.Router();
 
-// Get all users
-router.get('/', async (req, res) => {
+// ✅ JWT Middleware
+function verifyToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: 'No token provided' });
+
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ message: 'Invalid token' });
+    req.user = decoded;
+    next();
+  });
+}
+
+// ✅ Get all users (protected)
+router.get('/', verifyToken, async (req, res) => {
   const users = await getAllUsers();
   res.json(users);
 });
 
-// Get user by Steam ID
-router.get('/:id', async (req, res) => {
+// ✅ Get user by Steam ID (protected)
+router.get('/:id', verifyToken, async (req, res) => {
   const user = await getUser(req.params.id);
   if (!user) return res.status(404).json({ message: 'User not found' });
   res.json(user);
 });
 
-// Update user info
-router.post('/:id/edit', async (req, res) => {
+// ✅ Update user info (protected)
+router.post('/:id/edit', verifyToken, async (req, res) => {
   console.log(`⚡️ Received edit request for user ${req.params.id} with data:`, req.body);
 
   const success = await updateUser(req.params.id, req.body);

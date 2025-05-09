@@ -12,9 +12,13 @@ function FindPlayers() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem("token");
         const profileRes = await fetch(`${API_BASE}/profile`, {
-          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+
         const profileData = await profileRes.json();
 
         if (profileData.username) {
