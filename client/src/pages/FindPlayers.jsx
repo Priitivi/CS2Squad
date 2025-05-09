@@ -18,8 +18,10 @@ function FindPlayers() {
         const profileData = await profileRes.json();
 
         if (profileData.username) {
-          console.log("✅ Loaded current user:", profileData);
+          console.log("✅ Logged-in user loaded:", profileData);
           setCurrentUser(profileData);
+        } else {
+          console.warn("⚠️ Profile data missing username (maybe not logged in)");
         }
 
         const usersRes = await fetch(`${API_BASE}/users`, {
@@ -38,7 +40,13 @@ function FindPlayers() {
   }, [API_BASE]);
 
   const handleInvite = async (playerSteamId) => {
-    // ✅ FIRST: Prevent self-invite
+    // ✅ Check if currentUser is null or missing steamId
+    if (!currentUser || !currentUser.steamId) {
+      alert("❌ Error: Your profile is not loaded. Please log in again.");
+      return;
+    }
+
+    // ✅ Check for self-invite first
     if (playerSteamId === currentUser.steamId) {
       alert("❌ You can't invite yourself!");
       return;
@@ -60,11 +68,6 @@ function FindPlayers() {
     console.log("🚀 Clicking Invite button");
     console.log("Player ID:", playerSteamId);
     console.log("Team Name:", teamName);
-
-    if (!currentUser?.steamId || !teamName || !playerSteamId) {
-      console.warn("❌ Missing required data to send invite");
-      return;
-    }
 
     try {
       await addTeammateToTeam(currentUser.steamId, teamName, playerSteamId);
