@@ -4,14 +4,26 @@
 
 ---
 
-## ✨ Features
+## ✨ Live Demo
 
-- 🔐 Steam authentication using Passport.js
-- 👤 Profile page showing:
-  - Avatar, Steam link, Rank (Premier-style), Region, and Roles
-  - Editable profile with a polished modal and custom CS2-style Premier Rank slider
-- 🫂 Your Teams section with placeholder visuals
-- 🧠 "Start Adding People" recommendation UI (coming soon)
+-🌐 Frontend: https://www.cs2squad.com
+- 🔗 API: https://api.cs2squad.com
+
+
+
+---
+
+## 🚀 Features
+
+- 🔐 Steam Authentication: Secure login using Steam OpenID with JWT-based sessions.
+- 👤 Profile Management:
+  - Steam avatar, username, Premier rank, region & availability.
+  - Edit profile in a sleek modal with custom CS2-style Premier Rank slider.
+- 🛠️ Teams:
+  - Create & manage teams.
+  - Add or Remove teamates.
+  - Rename & delete teams.
+- 🔄 Live Updates: Frontend + backend communicate smoothly using JWT for protected routes.
 - 🎨 Sleek, animated homepage with testimonials, stats, feature cards, and call-to-action
 - 🎮 Theming inspired by Counter-Strike 2 with silhouettes and gamery vibe
 
@@ -20,16 +32,24 @@
 ## 🛠️ Tech Stack
 
 - **Frontend:** React + TailwindCSS + React Router
-- **Backend:** Node.js + Express + Passport-Steam
+- **Backend:** Node.js + Express + Passport-Steam (OpenID) + JWT Auth
 - **Auth:** Steam OpenID
 - **Styling:** TailwindCSS with animations and responsive design
+
+---
+
+## Hosting
+- 🌐 Frontend: Vercel
+- 🖥️ Backend: Railway
+- 🛢️ Database: Railway Postgres (Docker)
+
+
 
 ---
 
 ## 🔧 Planned Features
 
 - 🧠 Matchmaking algorithm based on region + rank
-- 💬 Team creation & invites
 - 📈 Leaderboard and stats
 - 💻 Admin dashboard
 
@@ -47,7 +67,7 @@
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-username/cs2squad.git
+git clone https://github.com/priitivi/cs2squad.git
 cd cs2squad
 ```
 
@@ -62,10 +82,16 @@ Create a `.env` file in `/server` with the following
 
 ```ini
 PORT=5000
-SESSION_SECRET=your_super_secret_session_key
 STEAM_API_KEY=your_steam_api_key
-STEAM_RETURN_URL=http://localhost:5000/auth/steam/return
-STEAM_REALM=http://localhost:5000/
+STEAM_RETURN_URL=https://api.cs2squad.com/auth/steam/return
+STEAM_REALM=https://api.cs2squad.com/
+JWT_SECRET=your_jwt_secret
+DB_HOST=your_db_host
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+DB_PORT=your_db_port
+DATABASE_URL=your_full_postgres_connection_string
 ```
 
 Start the backend
@@ -86,21 +112,28 @@ Frontend will run on `http://localhost:5173`
 
 ## 🔁 API Routes
 
-| Route                | Method | Description                          |
-|---------------------|--------|--------------------------------------|
-| `/auth/steam`        | GET    | Redirects to Steam login             |
-| `/auth/steam/return` | GET    | Handles Steam callback & redirects   |
-| `/profile`           | GET    | Returns user data (protected route)  |
+| Route                                                       | Method | Description                                                  |
+|-------------------------------------------------------------|--------|--------------------------------------------------------------|
+| `/auth/steam`                                               | GET    | Redirects the user to Steam login                             |
+| `/auth/steam/return`                                        | GET    | Handles Steam callback and redirects with JWT token           |
+| `/profile`                                                  | GET    | Returns logged-in user data (JWT-protected via JWT in header) |
+| `/team/:steamId/create-team`                                | POST   | Create a new team (provide `name` & optional `members`)       |
+| `/team/:steamId/:teamName/add-teammate`                     | POST   | Add a teammate to a team (provide `teammateId`)               |
+| `/team/:steamId/:teamName/remove-teammate`                  | POST   | Remove a teammate from a team (provide `teammateId`)          |
+| `/team/:steamId/:teamIndex`                                 | DELETE | Delete a team by its index                                    |
+| `/team/:steamId/:teamIndex/rename`                          | POST   | Rename a team (provide `newName`)                             |
 
 
-## 🚀 Roadmap
 
-- [x] Steam login integration
-- [x] Profile route with session support
-- [ ] Matchmaking filters (by rank, roles, etc.)
-- [ ] Team invites & direct messages
-- [ ] Deployment (Vercel + Render or Railway)
+## 🗺️ Roadmap
 
+- ✅ Full Steam login + JWT token system
+- ✅ Profile + Team creation & management
+- ✅ Responsive design & full deployment (Vercel + Railway)
+- 🔜 Matchmaking filters (rank, region)
+- 🔜 Team invites & recommendations
+- 🔜 Leaderboard & player stats
+- 🔜 Admin dashboard
 
 ## 👤 Author
 
