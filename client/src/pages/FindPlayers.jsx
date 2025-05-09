@@ -6,7 +6,7 @@ function FindPlayers() {
   const [currentUser, setCurrentUser] = useState(null);
   const [inviteStatus, setInviteStatus] = useState({});
   const [selectedTeams, setSelectedTeams] = useState({});
-  
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
@@ -38,11 +38,20 @@ function FindPlayers() {
   }, [API_BASE]);
 
   const handleInvite = async (playerSteamId) => {
-    const fallbackTeamName = currentUser?.teams?.length > 0 ? currentUser.teams[0].name : null;
+    // ✅ FIRST: Prevent self-invite
+    if (playerSteamId === currentUser.steamId) {
+      alert("❌ You can't invite yourself!");
+      return;
+    }
+
+    const fallbackTeamName =
+      currentUser?.teams?.length > 0 ? currentUser.teams[0].name : null;
     const teamName = selectedTeams[playerSteamId] || fallbackTeamName;
 
     if (!teamName) {
-      alert("❌ You don't have any teams to invite players to. Please create a team first!");
+      alert(
+        "❌ You don't have any teams to invite players to. Please create a team first!"
+      );
       return;
     }
 
@@ -54,11 +63,6 @@ function FindPlayers() {
 
     if (!currentUser?.steamId || !teamName || !playerSteamId) {
       console.warn("❌ Missing required data to send invite");
-      return;
-    }
-
-    if (playerSteamId === currentUser.steamId) {
-      alert("You can't invite yourself!");
       return;
     }
 
@@ -86,7 +90,9 @@ function FindPlayers() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {players.map((player) => {
-            const inviteKey = `${player.steamId}-${selectedTeams[player.steamId] || currentUser?.teams?.[0]?.name}`;
+            const inviteKey = `${player.steamId}-${
+              selectedTeams[player.steamId] || currentUser?.teams?.[0]?.name
+            }`;
 
             return (
               <div
@@ -98,7 +104,9 @@ function FindPlayers() {
                   alt={player.username}
                   className="w-24 h-24 rounded-full mb-4 border-2 border-green-400"
                 />
-                <h2 className="text-xl font-semibold mb-1">{player.username}</h2>
+                <h2 className="text-xl font-semibold mb-1">
+                  {player.username}
+                </h2>
 
                 <div className="flex flex-wrap justify-center gap-2 mb-4">
                   {player.region && (
@@ -119,8 +127,13 @@ function FindPlayers() {
 
                 {currentUser?.teams?.length > 1 && (
                   <select
-                    onChange={(e) => handleTeamSelect(player.steamId, e.target.value)}
-                    value={selectedTeams[player.steamId] || currentUser.teams[0]?.name}
+                    onChange={(e) =>
+                      handleTeamSelect(player.steamId, e.target.value)
+                    }
+                    value={
+                      selectedTeams[player.steamId] ||
+                      currentUser.teams[0]?.name
+                    }
                     className="bg-gray-700 text-white p-2 rounded mb-3 text-sm w-full"
                   >
                     {currentUser.teams.map((team, idx) => (
