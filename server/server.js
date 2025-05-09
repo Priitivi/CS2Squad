@@ -14,11 +14,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ CORS for frontend
+const cors = require('cors');
+
+const allowedOrigins = [
+  'https://cs2squad.com',
+  'https://www.cs2squad.com',
+  'http://localhost:5173'  // (for local dev)
+];
+
 app.use(cors({
-  origin: ['https://cs2squad.com'],
-  credentials: false, // no longer using cookies
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `🚫 CORS error: The CORS policy does not allow access from the specified Origin. (${origin})`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
 }));
+
 
 require('./app')(passport);
 app.use(passport.initialize());
