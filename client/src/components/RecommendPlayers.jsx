@@ -6,14 +6,26 @@ function RecommendPlayers() {
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
-    fetch(`${API_BASE}/users`, { credentials: "include" })
+    const token = localStorage.getItem("token");
+
+    fetch(`${API_BASE}/users`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
-        // Pick 3 random players
-        const shuffled = data.sort(() => 0.5 - Math.random());
-        setPlayers(shuffled.slice(0, 3));
+        if (Array.isArray(data)) {
+          // Pick 3 random players
+          const shuffled = data.sort(() => 0.5 - Math.random());
+          setPlayers(shuffled.slice(0, 3));
+        } else {
+          console.warn("⚠️ Expected an array but got:", data);
+        }
       })
-      .catch((err) => console.error("❌ Failed to load recommended players:", err));
+      .catch((err) =>
+        console.error("❌ Failed to load recommended players:", err)
+      );
   }, []);
 
   if (players.length === 0) return null;
@@ -27,7 +39,10 @@ function RecommendPlayers() {
             key={player.steamId}
             className="w-32 h-48 perspective"
             onClick={() =>
-              window.open(`https://steamcommunity.com/profiles/${player.steamId}`, "_blank")
+              window.open(
+                `https://steamcommunity.com/profiles/${player.steamId}`,
+                "_blank"
+              )
             }
           >
             <div className="relative w-full h-full transform-style preserve-3d transition-transform duration-500 hover:rotate-y-180 group cursor-pointer">
