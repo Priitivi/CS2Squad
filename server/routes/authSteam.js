@@ -23,7 +23,7 @@ router.get('/return', passport.authenticate('steam', {
   );
 
   // ✅ Redirect to frontend with token
-  res.redirect(`https://cs2squad.com/auth-success?token=${token}`);
+  res.redirect(`https://www.cs2squad.com/auth-success?token=${token}`);
 });
 
 module.exports = router;
