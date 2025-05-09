@@ -11,6 +11,7 @@ router.get('/', (req, res, next) => {
 // Steam callback route
 router.get('/return', passport.authenticate('steam', {
   failureRedirect: '/login',
+  session: false,  // ✅ Add this to disable session handling
 }), (req, res) => {
   console.log('✅ Logged in successfully, user:', req.user);
 
