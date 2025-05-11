@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
+
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -19,5 +20,9 @@
     "passport": "^0.7.0",
     "passport-steam": "^1.0.18",
     "pg": "^8.15.6"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.0"
   }
 }
