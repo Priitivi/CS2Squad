@@ -12,6 +12,13 @@
 
 
 ---
+## 🧪 Testing
+
+- Backend tests written using **Jest** and **Supertest**
+- Covers key API routes like `/profile` and `/team/create-team`
+- Run tests with: `npm test` inside `/server`
+
+---
 
 ## 🖼️ Screenshots
 
