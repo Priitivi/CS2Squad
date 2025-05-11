@@ -14,17 +14,25 @@ function ManageTeamModal({ team, userSteamId, onClose, onUpdated }) {
   const [allPlayers, setAllPlayers] = useState([]);
 
   useEffect(() => {
-    fetch(`${API_BASE}/users`, { credentials: "include" })
+    const token = localStorage.getItem("token");
+
+    fetch(`${API_BASE}/users`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
-      .then((data) => setAllPlayers(data))
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          console.error("Expected array, got:", data);
+          return;
+        }
+        setAllPlayers(data);
+      })
       .catch((err) => console.error("❌ Failed to fetch players:", err));
   }, []);
 
   const handleAddTeammate = async (teammateSteamId) => {
-    console.log("👾 Inviting teammate:", teammateSteamId);
-    console.log("From userSteamId:", userSteamId);
-    console.log("To team:", team.name);
-
     if (!userSteamId || !teammateSteamId || !team.name) {
       console.error("🚫 Missing data for invite");
       return;
