@@ -4,6 +4,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 function RecommendPlayers() {
   const [players, setPlayers] = useState([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -13,22 +14,26 @@ function RecommendPlayers() {
         Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) {
-          // Pick 3 random players
           const shuffled = data.sort(() => 0.5 - Math.random());
           setPlayers(shuffled.slice(0, 3));
         } else {
           console.warn("⚠️ Expected an array but got:", data);
+          setError(true);
         }
       })
-      .catch((err) =>
-        console.error("❌ Failed to load recommended players:", err)
-      );
+      .catch((err) => {
+        console.error("❌ Failed to load recommended players:", err);
+        setError(true);
+      });
   }, []);
 
-  if (players.length === 0) return null;
+  if (error || players.length === 0) return null;
 
   return (
     <div className="mt-10 p-6 bg-gray-800 rounded-xl shadow">

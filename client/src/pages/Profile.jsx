@@ -95,7 +95,8 @@ function Profile() {
         onTeamsUpdated={handleTeamsUpdated}
       />
 
-      <RecommendPlayers />
+      <RecommendPlayers currentUser={user} />
+
 
       {showModal && (
         <EditProfileModal user={user} onClose={handleClose} onSave={handleSave} />
