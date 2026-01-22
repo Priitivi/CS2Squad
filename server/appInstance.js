@@ -51,6 +51,14 @@ app.use('/auth/steam', require('./routes/authSteam'));
 app.use('/users', require('./routes/users'));
 app.use('/team', require('./routes/team'));
 
+// ✅ Health check (used by monitoring / load balancers)
+app.get('/health', async (req, res) => {
+  // Basic: app is up
+  res.status(200).json({ status: 'ok' });
+});
+
+
+
 app.get('/profile', verifyToken, async (req, res) => {
   try {
     const steamId = req.user.steamId;
