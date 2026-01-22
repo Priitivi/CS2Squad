@@ -1,46 +1,67 @@
 // server/app.js
 const passportSteam = require('passport-steam');
-const passport = require('passport');
 const SteamStrategy = passportSteam.Strategy;
-const db = require('./data/db'); // ✅ Database connection
+const db = require('./data/db'); // Database connection
 
 module.exports = function (passport) {
-  passport.use(new SteamStrategy({
-    returnURL: process.env.STEAM_RETURN_URL,
-    realm: process.env.STEAM_REALM,
-    apiKey: process.env.STEAM_API_KEY,
-  }, async (identifier, profile, done) => {
-    try {
-      const steamId = profile.id;
-      const username = profile.displayName;
-      const avatar = profile._json.avatarfull;
 
-      // 🛠 Try to find the user first
-      const result = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
+  // ✅ Only register Steam strategy outside of test environment
+  if (process.env.NODE_ENV !== 'test') {
+    passport.use(
+      new SteamStrategy(
+        {
+          returnURL: process.env.STEAM_RETURN_URL,
+          realm: process.env.STEAM_REALM,
+          apiKey: process.env.STEAM_API_KEY,
+        },
+        async (identifier, profile, done) => {
+          try {
+            const steamId = profile.id;
+            const username = profile.displayName;
+            const avatar = profile._json.avatarfull;
 
-      if (result.rows.length > 0) {
-        console.log('✅ Found existing user in Postgres:', result.rows[0]);
-        return done(null, result.rows[0]);
-      }
+            // Try to find the user first
+            const result = await db.query(
+              'SELECT * FROM users WHERE steam_id = $1',
+              [steamId]
+            );
 
-      // 🛠 If user not found, insert it
-      await db.query(`
-        INSERT INTO users (steam_id, username, avatar)
-        VALUES ($1, $2, $3)
-      `, [steamId, username, avatar]);
+            if (result.rows.length > 0) {
+              console.log('✅ Found existing user in Postgres:', result.rows[0]);
+              return done(null, result.rows[0]);
+            }
 
-      console.log('✅ New user inserted into Postgres:', { steamId, username });
+            // Insert new user
+            await db.query(
+              `
+              INSERT INTO users (steam_id, username, avatar)
+              VALUES ($1, $2, $3)
+              `,
+              [steamId, username, avatar]
+            );
 
-      // Fetch newly created user
-      const inserted = await db.query('SELECT * FROM users WHERE steam_id = $1', [steamId]);
-      return done(null, inserted.rows[0]);
+            console.log('✅ New user inserted into Postgres:', {
+              steamId,
+              username,
+            });
 
-    } catch (err) {
-      console.error('❌ Error during Steam login:', err);
-      return done(err);
-    }
-  }));
+            // Fetch newly created user
+            const inserted = await db.query(
+              'SELECT * FROM users WHERE steam_id = $1',
+              [steamId]
+            );
 
+            return done(null, inserted.rows[0]);
+          } catch (err) {
+            console.error('❌ Error during Steam login:', err);
+            return done(err);
+          }
+        }
+      )
+    );
+  }
+
+  // Serialize / deserialize (still needed in all envs)
   passport.serializeUser((user, done) => {
     done(null, user);
   });

@@ -28,4 +28,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
+        env:
+          NODE_ENV: test
+          JWT_SECRET: testsecret
         run: npm test
