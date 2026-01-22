@@ -6,7 +6,7 @@ services:
     container_name: cs2squad-api
     restart: unless-stopped
     env_file:
-      - /opt/cs2squad/.env
+      - ./.env
     expose:
       - "5000"
 
@@ -18,7 +18,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /opt/cs2squad/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
