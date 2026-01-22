@@ -46,6 +46,26 @@ function verifyToken(req, res, next) {
   });
 }
 
+/**
+ * ✅ Root route
+ * Prevents `GET /` returning 404 when visiting https://api.cs2squad.com/
+ * Helpful for uptime monitors and quick sanity checks.
+ */
+app.get('/', (req, res) => {
+  res.status(200).json({
+    ok: true,
+    service: 'cs2squad-api',
+    message: 'API is running',
+    endpoints: {
+      health: '/health',
+      authSteam: '/auth/steam',
+      users: '/users',
+      team: '/team',
+      profile: '/profile (requires Bearer token)',
+    }
+  });
+});
+
 // ✅ Mount routes
 app.use('/auth/steam', require('./routes/authSteam'));
 app.use('/users', require('./routes/users'));
@@ -56,8 +76,6 @@ app.get('/health', async (req, res) => {
   // Basic: app is up
   res.status(200).json({ status: 'ok' });
 });
-
-
 
 app.get('/profile', verifyToken, async (req, res) => {
   try {
