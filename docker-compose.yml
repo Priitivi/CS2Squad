@@ -9,6 +9,8 @@ services:
       - ./.env
     expose:
       - "5000"
+    volumes:
+      - ./rds-ca-bundle.pem:/app/rds-ca-bundle.pem:ro
 
   caddy:
     image: caddy:2
