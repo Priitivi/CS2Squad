@@ -51,16 +51,19 @@
 ## 🛠️ Tech Stack
 
 - **Frontend:** React + TailwindCSS + React Router
-- **Backend:** Node.js + Express + Passport-Steam (OpenID) + JWT Auth
-- **Auth:** Steam OpenID
+- **Backend:** Node.js + Express + Passport-Steam (OpenID) + JWT Auth + Steam OpenID (Passport)
+- **Database & Cloud:** PostgreSQL (AWS RDS) + AWS EC2 + AWS Security Groups + Docker & Docker Compose + Caddy (HTTPS reverse proxy)
 - **Styling:** TailwindCSS with animations and responsive design
 
 ---
+## 🏗️ Architecture Overview
 
-## Hosting
-- 🌐 Frontend: Vercel
-- 🖥️ Backend: Railway
-- 🛢️ Database: Railway Postgres (Docker)
+- **Frontend:** Deployed on Vercel
+- **Backend:** Dockerised Node.js API running on AWS EC2
+- **Database & Cloud:** PostgreSQL on AWS RDS :
+  - Private access via Security Groups (EC2 -> RDS)
+  - Encrypted connections using TLS + AWS RDS CA Bundle
+- **Styling:** TailwindCSS with animations and responsive design
 
 
 
@@ -146,12 +149,12 @@ Frontend will run on `http://localhost:5173`
 
 ## 🗺️ Roadmap
 
-- ✅ Full Steam login + JWT token system
-- ✅ Profile + Team creation & management
-- ✅ Responsive design & full deployment (Vercel + Railway)
+- ✅ Steam authentication + JWT
+- ✅ Profile and team management
+- ✅ Full deployment (Vercel + AWS)
 - 🔜 Matchmaking filters (rank, region)
 - 🔜 Team invites & recommendations
-- 🔜 Leaderboard & player stats
+- 🔜 Leaderboards & player statistics
 - 🔜 Admin dashboard
 
 ## 👤 Author
