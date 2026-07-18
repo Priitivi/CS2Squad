@@ -8,7 +8,7 @@ VALUES
 ('111222333', 'PlayerThree', 'https://avatars.steamstatic.com/avatar3.jpg', 'EU', 12000, ARRAY['Lurker'], ARRAY['Weekends']);
 
 -- Insert mock teams
-INSERT INTO teams (user_steam_id, name, members)
+INSERT INTO teams (owner_id, name, description, region, rank_min, rank_max, open_roles, members)
 VALUES
-('123456789', 'Dream Team', ARRAY['987654321', '111222333']),
-('987654321', 'TopFraggers', ARRAY['123456789']);
+('123456789', 'Dream Team', 'Structured evening stack.', 'EU', 12000, 18000, ARRAY['AWPer'], ARRAY['987654321', '111222333']),
+('987654321', 'TopFraggers', 'Competitive North American line-up.', 'NA', 10000, 17000, ARRAY['Support'], ARRAY['123456789']);

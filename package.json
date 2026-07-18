@@ -1,17 +1,16 @@
 {
   "name": "cs2squad",
-  "version": "1.0.0",
-  "main": "server.js",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Competitive teammate discovery and team recruitment for Counter-Strike players.",
   "scripts": {
-    "start": "node server.js"
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "test": "npm test --prefix server -- --runInBand && npm test --prefix client",
+    "typecheck": "npm run typecheck --prefix client",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server"
   },
-  "dependencies": {
-    "express": "^4.18.2",
-    "passport": "^0.6.0",
-    "passport-steam": "^1.0.11",
-    "express-session": "^1.17.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "pg": "^8.11.0"
+  "engines": {
+    "node": ">=20"
   }
 }
