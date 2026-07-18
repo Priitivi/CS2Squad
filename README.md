@@ -118,13 +118,20 @@ Never commit `.env` files or real credentials.
 
 ## Local development
 
-Prerequisites: Node.js 20+, npm, PostgreSQL, and a Steam Web API key.
+- **Frontend:** React + TailwindCSS + React Router
+- **Backend:** Node.js + Express + Passport-Steam (OpenID) + JWT Auth + Steam OpenID (Passport)
+- **Database & Cloud:** PostgreSQL (AWS RDS) + AWS EC2 + AWS Security Groups + Docker & Docker Compose + Caddy (HTTPS reverse proxy)
+- **Styling:** TailwindCSS with animations and responsive design
 
-```bash
-npm run install:all
-```
+---
+## 🏗️ Architecture Overview
 
-Create the database and bootstrap a new local schema:
+- **Frontend:** Deployed on Vercel
+- **Backend:** Dockerised Node.js API running on AWS EC2
+- **Database & Cloud:** PostgreSQL on AWS RDS :
+  - Private access via Security Groups (EC2 -> RDS)
+  - Encrypted connections using TLS + AWS RDS CA Bundle
+- **Styling:** TailwindCSS with animations and responsive design
 
 ```bash
 psql "$DATABASE_URL" -f server/db/schema.sql
@@ -209,15 +216,13 @@ Caddy terminates TLS for `API_DOMAIN`, adds basic response hardening headers, an
 
 ## Security notes
 
-- Steam IDs are normalized to strings across JWT claims, route parameters, query results, response models, member arrays, invitation comparisons, and tests.
-- Profile edits are restricted to the authenticated Steam ID.
-- Team mutations require server-side owner or member permissions.
-- Invitations reject self-invites, existing members, full teams, and duplicate pending entries.
-- Acceptance locks the invitation and team row in one PostgreSQL transaction.
-- SQL values are parameterised; mutable fields are allow-listed.
-- CORS uses environment-aware exact origins.
-- Production errors return stable messages without stack traces.
-- PostgreSQL TLS verifies the configured CA in production.
+- ✅ Steam authentication + JWT
+- ✅ Profile and team management
+- ✅ Full deployment (Vercel + AWS)
+- 🔜 Matchmaking filters (rank, region)
+- 🔜 Team invites & recommendations
+- 🔜 Leaderboards & player statistics
+- 🔜 Admin dashboard
 
 ## Known limitations
 
